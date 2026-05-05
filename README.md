@@ -1,4 +1,4 @@
-OXRANALOUATAB — Internal Cheat для CS2
+OXRANALOUTAB — Internal Cheat для CS2
 Современный internal чит для Counter-Strike 2 с акцентом на стабильность, качество и удобство.
 Основные возможности:
 
