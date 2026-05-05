@@ -122,20 +122,3 @@ void UpdateNoRecoilNoSpread(bool cs2Active)
 	}
 }
 
-// Skin Changer - включен/выключен
-bool g_skinChangerEnabled = true; // Включен по умолчанию
-
-// Конфигурация скинов для оружия (defIndex -> paintKit)
-std::map<int, int> g_skinConfig;
-
-// Переменные для Skin Changer
-std::map<uintptr_t, int> g_appliedSkins;           // Уже применённые скины
-uint32_t g_lastActiveWeapon = 0;                   // Последнее активное оружие
-ULONGLONG g_lastSkinUpdateTick = 0;                // Время последнего обновления
-LONG g_skinIdCounter = 0;                          // Счётчик уникальных ID
-
-// Триггер для реал-тайм обновления скинов
-int g_skinUpdateCounter = 0;
-int g_skinRevision = 1;
-int g_lastSkinUpdateCounterSeen = 0;
-
