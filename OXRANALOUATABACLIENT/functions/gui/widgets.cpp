@@ -1,5 +1,6 @@
 #include "widgets.h"
 #include "../core/globals.h"
+#include "../config/config_io.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 

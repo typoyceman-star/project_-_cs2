@@ -4,6 +4,7 @@
 #include "../core/globals.h"
 #include "../core/memory.h"
 #include "../config/config_io.h"
+#include "../config/paths.h"
 #include "../features/skinchanger/skinchanger.h"
 #include "imgui.h"
 #include "imgui_internal.h"

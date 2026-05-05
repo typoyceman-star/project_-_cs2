@@ -1,5 +1,6 @@
 #include "watermark.h"
 #include "../core/globals.h"
+#include "../core/memory.h"
 #include "imgui.h"
 
 void DrawWatermarkImGui()
