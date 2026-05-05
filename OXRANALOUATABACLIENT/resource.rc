@@ -1,0 +1,7 @@
+#include "resource.h"
+
+// Font resource (TTF or OTF)
+IDR_FONT_MAIN RCDATA "fonts\\font.otf"
+
+// Hit sound (WAV)
+IDR_WAV_HITSOUND RCDATA "sounds\\hit.wav"

@@ -1,0 +1,7 @@
+{
+    "C_Cpp.intelliSenseEngineFallback": "enabled",
+    "C_Cpp.errorSquiggles": "enabledIfIncludesResolve",
+    "files.exclude": {
+        "**/.vscode/browse.vc.db": true
+    }
+}
