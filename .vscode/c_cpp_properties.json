@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/OXRANALOUATABACLIENT",
+                "${workspaceFolder}/OXRANALOUATABACLIENT/imgui-1.92.5",
+                "${workspaceFolder}/OXRANALOUATABACLIENT/imgui-1.92.5/backends",
+                "${workspaceFolder}/OXRANALOUATABACLIENT/output"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "WIN32",
+                "NOMINMAX",
+                "IMGUI_DEFINE_MATH_OPERATORS",
+                "OXRANALOUATABACLIENT_EXPORTS",
+                "_WINDOWS",
+                "_USRDLL"
+            ],
+            "windowsSdkVersion": "10.0",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64",
+            "compilerPath": "cl.exe",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/OXRANALOUATABACLIENT",
+                    "${workspaceFolder}/OXRANALOUATABACLIENT/output",
+                    "${workspaceFolder}/OXRANALOUATABACLIENT/imgui-1.92.5",
+                    "${workspaceFolder}/OXRANALOUATABACLIENT/imgui-1.92.5/backends"
+                ],
+                "limitSymbolsToIncludedHeaders": false,
+                "databaseFilename": "${workspaceFolder}/.vscode/browse.vc.db"
+            }
+        }
+    ],
+    "version": 4
+}
