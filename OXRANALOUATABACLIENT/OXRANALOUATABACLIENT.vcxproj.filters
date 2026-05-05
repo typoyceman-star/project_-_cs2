@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Исходные файлы">
@@ -12,6 +12,69 @@
     <Filter Include="Файлы ресурсов">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="functions">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\core">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000002}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\config">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000003}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\hooks">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000004}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\render">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\overlay">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000006}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\gui">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000007}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000008}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\aimbot">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000009}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\triggerbot">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-00000000000a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\bhop">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-00000000000b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\skinchanger">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-00000000000c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\fov">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-00000000000d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\antiflash">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-00000000000e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\nosmoke">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-00000000000f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\norecoil">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000010}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\esp">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000011}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\bones">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000012}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\radar">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000013}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\snaplines">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000014}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="functions\features\spectators">
+      <UniqueIdentifier>{a1b1c1d1-0001-4000-9000-000000000015}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -27,10 +90,184 @@
     <ClInclude Include="pch.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="functions\core\types.h">
+      <Filter>functions\core</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\core\globals.h">
+      <Filter>functions\core</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\core\memory.h">
+      <Filter>functions\core</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\core\math.h">
+      <Filter>functions\core</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\config\json_parser.h">
+      <Filter>functions\config</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\config\runtime_offsets.h">
+      <Filter>functions\config</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\config\paths.h">
+      <Filter>functions\config</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\config\config_io.h">
+      <Filter>functions\config</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\hooks\hooks.h">
+      <Filter>functions\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\render\d3d11.h">
+      <Filter>functions\render</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\render\textures.h">
+      <Filter>functions\render</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\overlay\overlay.h">
+      <Filter>functions\overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\gui\style.h">
+      <Filter>functions\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\gui\widgets.h">
+      <Filter>functions\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\gui\menu.h">
+      <Filter>functions\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\gui\watermark.h">
+      <Filter>functions\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\gui\keybinds_list.h">
+      <Filter>functions\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\aimbot\aimbot.h">
+      <Filter>functions\features\aimbot</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\triggerbot\triggerbot.h">
+      <Filter>functions\features\triggerbot</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\bhop\bhop.h">
+      <Filter>functions\features\bhop</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\skinchanger\skinchanger.h">
+      <Filter>functions\features\skinchanger</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\fov\fov.h">
+      <Filter>functions\features\fov</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\antiflash\antiflash.h">
+      <Filter>functions\features\antiflash</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\nosmoke\nosmoke.h">
+      <Filter>functions\features\nosmoke</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\norecoil\norecoil.h">
+      <Filter>functions\features\norecoil</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\esp\esp.h">
+      <Filter>functions\features\esp</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\bones\bones.h">
+      <Filter>functions\features\bones</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\radar\radar.h">
+      <Filter>functions\features\radar</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\snaplines\snaplines.h">
+      <Filter>functions\features\snaplines</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\spectators\spectators.h">
+      <Filter>functions\features\spectators</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cs2_internal_dll.cpp">
       <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\core\globals.cpp">
+      <Filter>functions\core</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\core\memory.cpp">
+      <Filter>functions\core</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\core\math.cpp">
+      <Filter>functions\core</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\config\paths.cpp">
+      <Filter>functions\config</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\config\runtime_offsets.cpp">
+      <Filter>functions\config</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\config\config_io.cpp">
+      <Filter>functions\config</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\hooks\hooks.cpp">
+      <Filter>functions\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\render\d3d11.cpp">
+      <Filter>functions\render</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\render\textures.cpp">
+      <Filter>functions\render</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\overlay\overlay.cpp">
+      <Filter>functions\overlay</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\gui\style.cpp">
+      <Filter>functions\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\gui\widgets.cpp">
+      <Filter>functions\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\gui\menu.cpp">
+      <Filter>functions\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\gui\watermark.cpp">
+      <Filter>functions\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\gui\keybinds_list.cpp">
+      <Filter>functions\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\aimbot\aimbot.cpp">
+      <Filter>functions\features\aimbot</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\triggerbot\triggerbot.cpp">
+      <Filter>functions\features\triggerbot</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\bhop\bhop.cpp">
+      <Filter>functions\features\bhop</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\skinchanger\skinchanger.cpp">
+      <Filter>functions\features\skinchanger</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\fov\fov.cpp">
+      <Filter>functions\features\fov</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\antiflash\antiflash.cpp">
+      <Filter>functions\features\antiflash</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\nosmoke\nosmoke.cpp">
+      <Filter>functions\features\nosmoke</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\norecoil\norecoil.cpp">
+      <Filter>functions\features\norecoil</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\esp\esp.cpp">
+      <Filter>functions\features\esp</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\bones\bones.cpp">
+      <Filter>functions\features\bones</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\radar\radar.cpp">
+      <Filter>functions\features\radar</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\snaplines\snaplines.cpp">
+      <Filter>functions\features\snaplines</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\spectators\spectators.cpp">
+      <Filter>functions\features\spectators</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
