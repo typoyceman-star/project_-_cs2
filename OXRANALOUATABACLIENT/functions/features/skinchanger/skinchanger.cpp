@@ -6,27 +6,59 @@
 
 void InitSkinConfig()
 {
-	// Все оружия инициализируются как Default (0)
-	// Пользователь выбирает скины в меню, они сохраняются в config
-	g_skinConfig[1] = 0;   // Desert Eagle - Default
-	g_skinConfig[4] = 0;   // Glock-18 - Default
-	g_skinConfig[7] = 0;   // AK-47 - Default
-	g_skinConfig[9] = 0;   // AWP - Default
-	g_skinConfig[10] = 0;  // FAMAS - Default
-	g_skinConfig[13] = 0;  // Galil-AR - Default
-	g_skinConfig[16] = 0;  // M4A4 - Default
-	g_skinConfig[30] = 0;  // TEC-9 - Default
-	g_skinConfig[40] = 0;  // SSG-08 - Default
-	g_skinConfig[60] = 0;  // M4A1-S - Default
-	g_skinConfig[61] = 0;  // USP-S - Default
+	// Все оружия инициализируются дефолтным конфигом (paintKit=0, wear=0.0001, seed=0, без имени).
+	// Пользователь выбирает скины в меню, они сохраняются в g_skinConfig.
+	static const int defaultWeapons[] = {
+		1,  // Desert Eagle
+		4,  // Glock-18
+		7,  // AK-47
+		9,  // AWP
+		10, // FAMAS
+		13, // Galil-AR
+		16, // M4A4
+		30, // TEC-9
+		40, // SSG-08
+		60, // M4A1-S
+		61, // USP-S
+	};
+	for (int def : defaultWeapons) {
+		// emplace без перезаписи: если пользователь уже что-то загрузил из конфига, не трогаем.
+		g_skinConfig.emplace(def, WeaponSkinCfg{});
+	}
 }
 
 int GetPaintKitForWeapon(int defIndex)
 {
 	auto it = g_skinConfig.find(defIndex);
 	if (it != g_skinConfig.end())
-		return it->second;
+		return it->second.paintKit;
 	return 0; // Нет скина
+}
+
+// def_index ножей в CS2: дефолтный CT-knife = 42, T-knife = 59,
+// все «коллекционные» ножи лежат в диапазоне 500..526 (Bayonet, Karambit, M9 и т.д.).
+static inline bool IsKnifeDefIndex(uint16_t defIndex)
+{
+	return defIndex == 42 || defIndex == 59 || (defIndex >= 500 && defIndex <= 526);
+}
+
+// Безопасно записывает строку в C_EconItemView::m_szCustomName (161 байт).
+// Если src пустая — обнуляет первый байт (как делал старый код).
+static void WriteCustomName(uintptr_t itemView, const char* src)
+{
+	using namespace cs2_dumper::schemas::client_dll;
+	const uintptr_t base = itemView + C_EconItemView::m_szCustomName;
+	if (!src || src[0] == '\0') {
+		(void)TryWrite<char>(base, '\0');
+		return;
+	}
+	// Копируем максимум 160 символов + NUL.
+	size_t n = 0;
+	while (n < 160 && src[n] != '\0') {
+		(void)TryWrite<char>(base + n, src[n]);
+		++n;
+	}
+	(void)TryWrite<char>(base + n, '\0');
 }
 
 
@@ -199,12 +231,39 @@ void UpdateSkinChangerHooked() {
 		uint16_t defIndex = 0;
 		if (!TryRead<uint16_t>(itemView + C_EconItemView::m_iItemDefinitionIndex, defIndex)) continue;
 
-		int targetPaintKit = GetPaintKitForWeapon(defIndex);
-		if (targetPaintKit <= 0) continue;
+		// --- Решаем, что применять: ножевой конфиг или конфиг скина оружия. ---
+		int targetPaintKit = 0;
+		float targetWear = 0.0001f;
+		int targetSeed = 0;
+		const char* targetName = nullptr;
+		bool overrideKnifeModel = false;
+
+		const bool isKnife = IsKnifeDefIndex(defIndex);
+		if (isKnife && g_knifeEnabled) {
+			// Конфиг ножа применяется ко всем ножам в инвентаре.
+			targetPaintKit = g_knifePaintKit;
+			targetWear = g_knifeWear;
+			targetSeed = g_knifeSeed;
+			targetName = g_knifeName;
+			overrideKnifeModel = (g_knifeDefIndex != 0 && g_knifeDefIndex != defIndex);
+		} else if (!isKnife) {
+			auto it = g_skinConfig.find(defIndex);
+			if (it == g_skinConfig.end()) continue;
+			const WeaponSkinCfg& cfg = it->second;
+			if (cfg.paintKit <= 0) continue;
+			targetPaintKit = cfg.paintKit;
+			targetWear = cfg.wear;
+			targetSeed = cfg.seed;
+			targetName = cfg.customName;
+		} else {
+			continue;
+		}
+
+		if (targetPaintKit <= 0 && !overrideKnifeModel) continue;
 
 		// --- ЖЕСТКАЯ ЛОГИКА ОБНОВЛЕНИЯ ---
 		// Если PaintKit изменился ИЛИ мы нажали "обновить" в меню ИЛИ ID еще не сгенерирован
-		bool needUpdate = (g_appliedKits[weaponEnt] != targetPaintKit) || menuChanged || (g_generatedIDs[weaponEnt] == 0);
+		bool needUpdate = (g_appliedKits[weaponEnt] != targetPaintKit) || menuChanged || (g_generatedIDs[weaponEnt] == 0) || overrideKnifeModel;
 
 		if (needUpdate) {
 			// 1. Генерируем НОВЫЙ СЛУЧАЙНЫЙ ID.
@@ -223,12 +282,18 @@ void UpdateSkinChangerHooked() {
 			// 3. Запись "Нового" предмета
 			(void)TryWrite<uint32_t>(itemView + C_EconItemView::m_iItemIDHigh, newHighID);
 			(void)TryWrite<uint32_t>(itemView + C_EconItemView::m_iItemIDLow, 0);
-			
-			// 4. Основные параметры
+
+			// 3b. Если включён knife changer и в слоте — нож, переписываем модель.
+			if (overrideKnifeModel) {
+				(void)TryWrite<uint16_t>(itemView + C_EconItemView::m_iItemDefinitionIndex,
+					(uint16_t)g_knifeDefIndex);
+			}
+
+			// 4. Основные параметры (paintKit / seed / wear)
 			(void)TryWrite<int32_t>(weaponEnt + C_EconEntity::m_nFallbackPaintKit, targetPaintKit);
-			(void)TryWrite<int32_t>(weaponEnt + C_EconEntity::m_nFallbackSeed, 1);
-			(void)TryWrite<float>(weaponEnt + C_EconEntity::m_flFallbackWear, 0.001f);
-			
+			(void)TryWrite<int32_t>(weaponEnt + C_EconEntity::m_nFallbackSeed, targetSeed);
+			(void)TryWrite<float>(weaponEnt + C_EconEntity::m_flFallbackWear, targetWear);
+
 			// 5. StatTrak -1 (Выкл, чтобы не багало UV)
 			(void)TryWrite<int32_t>(weaponEnt + C_EconEntity::m_nFallbackStatTrak, -1);
 			
@@ -238,12 +303,11 @@ void UpdateSkinChangerHooked() {
 			// 6b. Update attributes (used by engine for skin material/UV)
 			// Only patches existing attribute entries; does not allocate/resize.
 			(void)TrySetEconAttributeFloat(itemView, 6, (float)targetPaintKit);
-			(void)TrySetEconAttributeFloat(itemView, 7, 1.0f);
-			(void)TrySetEconAttributeFloat(itemView, 8, 0.001f);
+			(void)TrySetEconAttributeFloat(itemView, 7, (float)targetSeed);
+			(void)TrySetEconAttributeFloat(itemView, 8, targetWear);
 			
-			// 7. Стираем кастомное имя (иногда там мусор, который ломает парсер)
-			char emptyName[32] = {0};
-			(void)TryWrite<char>(itemView + C_EconItemView::m_szCustomName, 0);
+			// 7. Кастомное имя (или пустое — обнулим первый байт).
+			WriteCustomName(itemView, targetName);
 			
 			// 8. Viewmodel Update
 		}

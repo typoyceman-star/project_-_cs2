@@ -548,77 +548,195 @@ void DrawMenuImGui()
 		
 		ImGui::Separator();
 		ImGui::Text("Скины (Обновляются моментально!):");
+		ImGui::TextDisabled("Кликни по оружию ниже, чтобы развернуть и настроить wear / seed / имя.");
 		ImGui::Spacing();
 
+		// Универсальный рендерер блока «один тип оружия».
+		// def — C_EconItemView::m_iItemDefinitionIndex (ключ g_skinConfig).
+		// names/kits — список вариантов в комбобоксе.
+		auto DrawWeaponSkinRow = [&](const char* label, int def,
+			const char* const* names, const int* kits, int count)
+		{
+			WeaponSkinCfg& cfg = g_skinConfig[def];
+			
+			// Найти текущий индекс по cfg.paintKit (или 0 = Default).
+			int curIdx = 0;
+			for (int i = 0; i < count; ++i) {
+				if (kits[i] == cfg.paintKit) { curIdx = i; break; }
+			}
+
+			ImGui::PushID(def);
+			if (ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_SpanAvailWidth)) {
+				if (ImGui::Combo("Skin", &curIdx, names, count)) {
+					cfg.paintKit = kits[curIdx];
+					g_skinUpdateCounter++;
+					MarkDirty();
+				}
+				if (ImGui::SliderFloat("Wear", &cfg.wear, 0.0001f, 1.0f, "%.4f")) {
+					g_skinUpdateCounter++;
+					MarkDirty();
+				}
+				if (ImGui::InputInt("Seed", &cfg.seed)) {
+					if (cfg.seed < 0) cfg.seed = 0;
+					if (cfg.seed > 1000) cfg.seed = 1000;
+					g_skinUpdateCounter++;
+					MarkDirty();
+				}
+				if (ImGui::InputText("Name", cfg.customName, IM_ARRAYSIZE(cfg.customName))) {
+					g_skinUpdateCounter++;
+					MarkDirty();
+				}
+				ImGui::TreePop();
+			} else {
+				// При свёрнутом узле справа от заголовка показываем выбранный скин.
+				ImGui::SameLine();
+				ImGui::TextDisabled("(%s)", names[curIdx]);
+			}
+			ImGui::PopID();
+		};
+
 		// === TEC-9 ===
-		const char* tec9Skins[] = { "Default", "Decimator", "Fuel Injector", "Remote Control", "Isaac", "Toxic", "Avalanche", "Re-Entry", "Brother" };
-		const int tec9PaintKits[] = { 0, 644, 614, 791, 303, 374, 520, 539, 1099 };
-		static int tec9SkinIdx = 0;
-		if (ImGui::Combo("Tec-9", &tec9SkinIdx, tec9Skins, IM_ARRAYSIZE(tec9Skins))) { g_skinConfig[30] = tec9PaintKits[tec9SkinIdx]; g_skinUpdateCounter++; MarkDirty(); }
+		static const char* tec9Skins[] = { "Default", "Decimator", "Fuel Injector", "Remote Control", "Isaac", "Toxic", "Avalanche", "Re-Entry", "Brother" };
+		static const int tec9PaintKits[] = { 0, 644, 614, 791, 303, 374, 520, 539, 1099 };
+		DrawWeaponSkinRow("Tec-9", 30, tec9Skins, tec9PaintKits, IM_ARRAYSIZE(tec9Skins));
 
 		// === USP-S ===
-		const char* uspSkins[] = { "Default", "Printstream", "The Traitor", "Neo-Noir", "Kill Confirmed", "Jawbreaker", "Monster Mashup", "Caiman", "Serum", "Orion", "Whiteout", "Target Acquired", "Ticket to Hell", "Cortex" };
-		const int uspPaintKits[] = { 0, 1142, 1040, 653, 504, 1173, 991, 339, 221, 313, 1065, 1027, 1146, 705 };
-		static int uspSkinIdx = 0;
-		if (ImGui::Combo("USP-S", &uspSkinIdx, uspSkins, IM_ARRAYSIZE(uspSkins))) { g_skinConfig[61] = uspPaintKits[uspSkinIdx]; g_skinUpdateCounter++; MarkDirty(); }
+		static const char* uspSkins[] = { "Default", "Printstream", "The Traitor", "Neo-Noir", "Kill Confirmed", "Jawbreaker", "Monster Mashup", "Caiman", "Serum", "Orion", "Whiteout", "Target Acquired", "Ticket to Hell", "Cortex" };
+		static const int uspPaintKits[] = { 0, 1142, 1040, 653, 504, 1173, 991, 339, 221, 313, 1065, 1027, 1146, 705 };
+		DrawWeaponSkinRow("USP-S", 61, uspSkins, uspPaintKits, IM_ARRAYSIZE(uspSkins));
 
 		// === GLOCK-18 ===
-		const char* glockSkins[] = { "Default", "Twilight Galaxy", "Vogue", "Water Elemental", "Snack Attack", "Gamma Doppler Emerald", "Wasteland Rebel", "Bullet Queen", "Neo-Noir", "Fade", "Moonrise", "Nuclear Garden" };
-		const int glockPaintKits[] = { 0, 437, 963, 353, 1100, 1119, 586, 957, 988, 38, 707, 536 };
-		static int glockSkinIdx = 0;
-		if (ImGui::Combo("Glock-18", &glockSkinIdx, glockSkins, IM_ARRAYSIZE(glockSkins))) { g_skinConfig[4] = glockPaintKits[glockSkinIdx]; g_skinUpdateCounter++; MarkDirty(); }
+		static const char* glockSkins[] = { "Default", "Twilight Galaxy", "Vogue", "Water Elemental", "Snack Attack", "Gamma Doppler Emerald", "Wasteland Rebel", "Bullet Queen", "Neo-Noir", "Fade", "Moonrise", "Nuclear Garden" };
+		static const int glockPaintKits[] = { 0, 437, 963, 353, 1100, 1119, 586, 957, 988, 38, 707, 536 };
+		DrawWeaponSkinRow("Glock-18", 4, glockSkins, glockPaintKits, IM_ARRAYSIZE(glockSkins));
 
 		// === AK-47 ===
-		const char* akSkins[] = { "Default", "Nightwish", "Leet Museo", "Legion of Anubis", "Asiimov", "Neon Rider", "The Empress", "Bloodsport", "Neon Revolution", "Fuel Injector", "Aquamarine Revenge", "Wasteland Rebel", "Jaguar", "Vulcan", "Fire Serpent", "Gold Arabesque", "X-Ray", "Wild Lotus", "Ice Coaled", "Phantom Disruptor", "Point Disarray", "Frontside Misty", "Cartel", "Redline", "Case Hardened", "Red Laminate", "Panthera onca", "Hydroponic", "Jet Set" };
-		const int akPaintKits[] = { 0, 1141, 1087, 959, 551, 433, 675, 597, 600, 524, 474, 380, 316, 302, 180, 1026, 1004, 724, 1143, 941, 506, 490, 528, 282, 44, 14, 1018, 456, 340 };
-		static int akSkinIdx = 0;
-		if (ImGui::Combo("AK-47", &akSkinIdx, akSkins, IM_ARRAYSIZE(akSkins))) { g_skinConfig[7] = akPaintKits[akSkinIdx]; g_skinUpdateCounter++; MarkDirty(); }
+		static const char* akSkins[] = { "Default", "Nightwish", "Leet Museo", "Legion of Anubis", "Asiimov", "Neon Rider", "The Empress", "Bloodsport", "Neon Revolution", "Fuel Injector", "Aquamarine Revenge", "Wasteland Rebel", "Jaguar", "Vulcan", "Fire Serpent", "Gold Arabesque", "X-Ray", "Wild Lotus", "Ice Coaled", "Phantom Disruptor", "Point Disarray", "Frontside Misty", "Cartel", "Redline", "Case Hardened", "Red Laminate", "Panthera onca", "Hydroponic", "Jet Set" };
+		static const int akPaintKits[] = { 0, 1141, 1087, 959, 551, 433, 675, 597, 600, 524, 474, 380, 316, 302, 180, 1026, 1004, 724, 1143, 941, 506, 490, 528, 282, 44, 14, 1018, 456, 340 };
+		DrawWeaponSkinRow("AK-47", 7, akSkins, akPaintKits, IM_ARRAYSIZE(akSkins));
 
 		// === AWP ===
-		const char* awpSkins[] = { "Default", "Printstream", "Chromatic Aberration", "Containment Breach", "Wildfire", "Neo-Noir", "Oni Taiji", "Hyper Beast", "Man-o'-war", "Asiimov", "Lightning Strike", "Desert Hydra", "Fade", "The Prince", "Gungnir", "Medusa", "Dragon Lore", "Ice Coaled", "Mortis", "Fever Dream", "Elite Build", "Corticera", "Redline", "Electric Hive", "Graphite", "BOOM", "Silk Tiger" };
-		const int awpPaintKits[] = { 0, 1144, 1120, 887, 917, 803, 662, 475, 395, 279, 51, 1058, 1022, 736, 756, 446, 344, 1143, 691, 640, 525, 181, 259, 227, 212, 174, 1029 };
-		static int awpSkinIdx = 0;
-		if (ImGui::Combo("AWP", &awpSkinIdx, awpSkins, IM_ARRAYSIZE(awpSkins))) { g_skinConfig[9] = awpPaintKits[awpSkinIdx]; g_skinUpdateCounter++; MarkDirty(); }
+		static const char* awpSkins[] = { "Default", "Printstream", "Chromatic Aberration", "Containment Breach", "Wildfire", "Neo-Noir", "Oni Taiji", "Hyper Beast", "Man-o'-war", "Asiimov", "Lightning Strike", "Desert Hydra", "Fade", "The Prince", "Gungnir", "Medusa", "Dragon Lore", "Ice Coaled", "Mortis", "Fever Dream", "Elite Build", "Corticera", "Redline", "Electric Hive", "Graphite", "BOOM", "Silk Tiger" };
+		static const int awpPaintKits[] = { 0, 1144, 1120, 887, 917, 803, 662, 475, 395, 279, 51, 1058, 1022, 736, 756, 446, 344, 1143, 691, 640, 525, 181, 259, 227, 212, 174, 1029 };
+		DrawWeaponSkinRow("AWP", 9, awpSkins, awpPaintKits, IM_ARRAYSIZE(awpSkins));
 
 		// === FAMAS ===
-		const char* famasSkins[] = { "Default", "Commemoration", "Roll Cage", "Rapid Eye Movement", "Eye of Athena", "Mecha Industries", "Djinn", "Afterimage", "Waters of Nephthys", "Meltdown", "Valence" };
-		const int famasPaintKits[] = { 0, 919, 604, 1127, 723, 587, 429, 154, 1128, 1053, 529 };
-		static int famasSkinIdx = 0;
-		if (ImGui::Combo("FAMAS", &famasSkinIdx, famasSkins, IM_ARRAYSIZE(famasSkins))) { g_skinConfig[10] = famasPaintKits[famasSkinIdx]; g_skinUpdateCounter++; MarkDirty(); }
+		static const char* famasSkins[] = { "Default", "Commemoration", "Roll Cage", "Rapid Eye Movement", "Eye of Athena", "Mecha Industries", "Djinn", "Afterimage", "Waters of Nephthys", "Meltdown", "Valence" };
+		static const int famasPaintKits[] = { 0, 919, 604, 1127, 723, 587, 429, 154, 1128, 1053, 529 };
+		DrawWeaponSkinRow("FAMAS", 10, famasSkins, famasPaintKits, IM_ARRAYSIZE(famasSkins));
 
 		// === GALIL-AR ===
-		const char* galilSkins[] = { "Default", "Chatterbox", "Chromatic Aberration", "Sugar Rush", "Eco", "Cerberus", "Rocket Pop" };
-		const int galilPaintKits[] = { 0, 398, 1144, 661, 428, 379, 478 };
-		static int galilSkinIdx = 0;
-		if (ImGui::Combo("Galil-AR", &galilSkinIdx, galilSkins, IM_ARRAYSIZE(galilSkins))) { g_skinConfig[13] = galilPaintKits[galilSkinIdx]; g_skinUpdateCounter++; MarkDirty(); }
+		static const char* galilSkins[] = { "Default", "Chatterbox", "Chromatic Aberration", "Sugar Rush", "Eco", "Cerberus", "Rocket Pop" };
+		static const int galilPaintKits[] = { 0, 398, 1144, 661, 428, 379, 478 };
+		DrawWeaponSkinRow("Galil-AR", 13, galilSkins, galilPaintKits, IM_ARRAYSIZE(galilSkins));
 
 		// === M4A1-S ===
-		const char* m4a1sSkins[] = { "Default", "Printstream", "Player Two", "Mecha Industries", "Chantico's Fire", "Golden Coil", "Hyper Beast", "Cyrex", "Fade", "Imminent Danger", "Welcome to the Jungle", "Black Lotus", "Nightmare", "Leaded Glass", "Decimator", "Atomic Alloy", "Guardian", "Blue Phosphor", "Control Panel", "Hot Rod", "Master Piece", "Knight" };
-		const int m4a1sPaintKits[] = { 0, 984, 946, 587, 548, 497, 430, 312, 1041, 1073, 1001, 1102, 714, 681, 644, 301, 257, 1017, 792, 445, 321, 326 };
-		static int m4a1sSkinIdx = 0;
-		if (ImGui::Combo("M4A1-S", &m4a1sSkinIdx, m4a1sSkins, IM_ARRAYSIZE(m4a1sSkins))) { g_skinConfig[60] = m4a1sPaintKits[m4a1sSkinIdx]; g_skinUpdateCounter++; MarkDirty(); }
+		static const char* m4a1sSkins[] = { "Default", "Printstream", "Player Two", "Mecha Industries", "Chantico's Fire", "Golden Coil", "Hyper Beast", "Cyrex", "Fade", "Imminent Danger", "Welcome to the Jungle", "Black Lotus", "Nightmare", "Leaded Glass", "Decimator", "Atomic Alloy", "Guardian", "Blue Phosphor", "Control Panel", "Hot Rod", "Master Piece", "Knight" };
+		static const int m4a1sPaintKits[] = { 0, 984, 946, 587, 548, 497, 430, 312, 1041, 1073, 1001, 1102, 714, 681, 644, 301, 257, 1017, 792, 445, 321, 326 };
+		DrawWeaponSkinRow("M4A1-S", 60, m4a1sSkins, m4a1sPaintKits, IM_ARRAYSIZE(m4a1sSkins));
 
 		// === M4A4 ===
-		const char* m4a4Skins[] = { "Default", "Howl", "In Living Color", "The Emperor", "Neo-Noir", "Buzz Kill", "The Battlestar", "Royal Paladin", "Bullet Rain", "Desert-Strike", "Asiimov", "X-Ray", "The Coalition", "Cyber Security", "Tooth Fairy", "Hellfire", "Desolate Space", "Dragon King", "Poseidon" };
-		const int m4a4PaintKits[] = { 0, 309, 1041, 844, 695, 632, 533, 512, 155, 336, 255, 215, 1063, 985, 971, 664, 588, 400, 449 };
-		static int m4a4SkinIdx = 0;
-		if (ImGui::Combo("M4A4", &m4a4SkinIdx, m4a4Skins, IM_ARRAYSIZE(m4a4Skins))) { g_skinConfig[16] = m4a4PaintKits[m4a4SkinIdx]; g_skinUpdateCounter++; MarkDirty(); }
+		static const char* m4a4Skins[] = { "Default", "Howl", "In Living Color", "The Emperor", "Neo-Noir", "Buzz Kill", "The Battlestar", "Royal Paladin", "Bullet Rain", "Desert-Strike", "Asiimov", "X-Ray", "The Coalition", "Cyber Security", "Tooth Fairy", "Hellfire", "Desolate Space", "Dragon King", "Poseidon" };
+		static const int m4a4PaintKits[] = { 0, 309, 1041, 844, 695, 632, 533, 512, 155, 336, 255, 215, 1063, 985, 971, 664, 588, 400, 449 };
+		DrawWeaponSkinRow("M4A4", 16, m4a4Skins, m4a4PaintKits, IM_ARRAYSIZE(m4a4Skins));
 
 		// === SSG-08 ===
-		const char* ssgSkins[] = { "Default", "Dragonfire", "Blood in the Water", "Turbo Peek", "Bloodshot", "Big Iron", "Death Strike" };
-		const int ssgPaintKits[] = { 0, 624, 222, 1101, 899, 503, 1052 };
-		static int ssgSkinIdx = 0;
-		if (ImGui::Combo("SSG-08", &ssgSkinIdx, ssgSkins, IM_ARRAYSIZE(ssgSkins))) { g_skinConfig[40] = ssgPaintKits[ssgSkinIdx]; g_skinUpdateCounter++; MarkDirty(); }
+		static const char* ssgSkins[] = { "Default", "Dragonfire", "Blood in the Water", "Turbo Peek", "Bloodshot", "Big Iron", "Death Strike" };
+		static const int ssgPaintKits[] = { 0, 624, 222, 1101, 899, 503, 1052 };
+		DrawWeaponSkinRow("SSG-08", 40, ssgSkins, ssgPaintKits, IM_ARRAYSIZE(ssgSkins));
 
 		// === DESERT EAGLE ===
-		const char* deagleSkins[] = { "Default", "Ocean Drive", "Printstream", "Code Red", "Golden Koi", "Mecha Industries", "Kumicho Dragon", "Conspiracy", "Cobalt Disruption", "Hypnotic", "Fennec Fox" };
-		const int deaglePaintKits[] = { 0, 1090, 984, 711, 185, 587, 527, 351, 231, 61, 1051 };
-		static int deagleSkinIdx = 0;
-		if (ImGui::Combo("Desert Eagle", &deagleSkinIdx, deagleSkins, IM_ARRAYSIZE(deagleSkins))) { g_skinConfig[1] = deaglePaintKits[deagleSkinIdx]; g_skinUpdateCounter++; MarkDirty(); }
+		static const char* deagleSkins[] = { "Default", "Ocean Drive", "Printstream", "Code Red", "Golden Koi", "Mecha Industries", "Kumicho Dragon", "Conspiracy", "Cobalt Disruption", "Hypnotic", "Fennec Fox" };
+		static const int deaglePaintKits[] = { 0, 1090, 984, 711, 185, 587, 527, 351, 231, 61, 1051 };
+		DrawWeaponSkinRow("Desert Eagle", 1, deagleSkins, deaglePaintKits, IM_ARRAYSIZE(deagleSkins));
 
 		ImGui::Spacing();
 		ImGui::Separator();
-		ImGui::TextDisabled("Агенты, Ножи и Перчатки отключены для 100% стабильности (Anti-Crash).");
+
+		// === KNIFE CHANGER ===
+		// Список ножей (def_index из C_EconItemView::m_iItemDefinitionIndex).
+		// «Default» = 0 = «не менять модель» (paint kit всё равно применится к стоковому ножу).
+		static const char* knifeNames[] = {
+			"Default (модель не меняется)",
+			"Bayonet", "Flip Knife", "Gut Knife", "Karambit", "M9 Bayonet",
+			"Huntsman Knife", "Falchion Knife", "Bowie Knife", "Butterfly Knife",
+			"Shadow Daggers", "Paracord Knife", "Survival Knife", "Ursus Knife",
+			"Navaja Knife", "Nomad Knife", "Stiletto Knife", "Talon Knife",
+			"Skeleton Knife", "Classic Knife", "Kukri Knife"
+		};
+		static const int knifeDefs[] = {
+			0,
+			500, 505, 506, 507, 508,
+			509, 512, 514, 515,
+			516, 517, 518, 519,
+			520, 521, 522, 523,
+			525, 503, 526
+		};
+		static_assert(IM_ARRAYSIZE(knifeNames) == IM_ARRAYSIZE(knifeDefs), "knife arrays must match");
+
+		// Универсальные «ножевые» paint kits (в т.ч. редкие — Doppler, Fade, etc.)
+		static const char* knifeSkinNames[] = {
+			"Default (no skin)", "Vanilla (default model only)",
+			"Crimson Web", "Slaughter", "Case Hardened", "Fade", "Forest DDPAT",
+			"Stained", "Blue Steel", "Boreal Forest", "Doppler",
+			"Damascus Steel", "Ultraviolet", "Marble Fade", "Tiger Tooth",
+			"Rust Coat", "Night", "Safari Mesh", "Scorched", "Urban Masked",
+			"Black Laminate", "Gamma Doppler"
+		};
+		static const int knifeSkinKits[] = {
+			0, 0,
+			12, 41, 44, 38, 5,
+			15, 42, 8, 417,
+			558, 419, 413, 409,
+			421, 17, 9, 34, 35,
+			15, 568
+		};
+		static_assert(IM_ARRAYSIZE(knifeSkinNames) == IM_ARRAYSIZE(knifeSkinKits), "knife skin arrays must match");
+
+		ImGui::Text("Knife Changer:");
+		ImGui::Spacing();
+		PremiumToggle("Enable Knife Changer", &g_knifeEnabled);
+		if (ImGui::IsItemClicked()) MarkDirty();
+
+		if (g_knifeEnabled) {
+			// Текущие индексы по сохранённым значениям.
+			int knifeModelIdx = 0;
+			for (int i = 0; i < IM_ARRAYSIZE(knifeDefs); ++i) {
+				if (knifeDefs[i] == g_knifeDefIndex) { knifeModelIdx = i; break; }
+			}
+			int knifeSkinIdx = 0;
+			for (int i = 0; i < IM_ARRAYSIZE(knifeSkinKits); ++i) {
+				if (knifeSkinKits[i] == g_knifePaintKit) { knifeSkinIdx = i; break; }
+			}
+			if (ImGui::Combo("Knife Model", &knifeModelIdx, knifeNames, IM_ARRAYSIZE(knifeNames))) {
+				g_knifeDefIndex = knifeDefs[knifeModelIdx];
+				g_skinUpdateCounter++;
+				MarkDirty();
+			}
+			if (ImGui::Combo("Knife Skin", &knifeSkinIdx, knifeSkinNames, IM_ARRAYSIZE(knifeSkinNames))) {
+				g_knifePaintKit = knifeSkinKits[knifeSkinIdx];
+				g_skinUpdateCounter++;
+				MarkDirty();
+			}
+			if (ImGui::SliderFloat("Knife Wear", &g_knifeWear, 0.0001f, 1.0f, "%.4f")) {
+				g_skinUpdateCounter++;
+				MarkDirty();
+			}
+			if (ImGui::InputInt("Knife Seed", &g_knifeSeed)) {
+				if (g_knifeSeed < 0) g_knifeSeed = 0;
+				if (g_knifeSeed > 1000) g_knifeSeed = 1000;
+				g_skinUpdateCounter++;
+				MarkDirty();
+			}
+			if (ImGui::InputText("Knife Name", g_knifeName, IM_ARRAYSIZE(g_knifeName))) {
+				g_skinUpdateCounter++;
+				MarkDirty();
+			}
+		}
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::TextDisabled("Перчатки и агенты пока не поддерживаются — требуют движкового рефреша.");
 	}
 	else if (activeTab == TAB_CONFIGS)
 	{

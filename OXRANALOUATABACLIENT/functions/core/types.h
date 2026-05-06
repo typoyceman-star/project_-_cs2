@@ -82,3 +82,14 @@ struct DamageText
 
 // VTable-хук CreateInterface
 typedef void(__fastcall* FrameStageNotify_t)(void* rcx, int curStage);
+
+// Конфиг скина для одного оружия в Skin Changer.
+// customName хранится в коротком буфере (ImGui InputText).
+// При записи в C_EconItemView::m_szCustomName (161 байт) — копируется с обрезкой.
+struct WeaponSkinCfg
+{
+	int paintKit = 0;
+	float wear = 0.0001f;
+	int seed = 0;
+	char customName[64] = {};
+};

@@ -77,6 +77,28 @@ void SaveConfig()
     // Сохранение цвета меню (R, G, B, A)
     sprintf_s(buf, sizeof(buf), "%.2f,%.2f,%.2f,%.2f", g_guiColor.x, g_guiColor.y, g_guiColor.z, g_guiColor.w);
     WritePrivateProfileStringA("Menu", "Color", buf, configPath.c_str());
+
+    // Skin Changer (per-weapon: paintKit, wear, seed, name)
+    WritePrivateProfileStringA("SkinChanger", "Enabled", g_skinChangerEnabled ? "1" : "0", configPath.c_str());
+    {
+        char keyBuf[64];
+        for (const auto& kv : g_skinConfig) {
+            const int def = kv.first;
+            const WeaponSkinCfg& cfg = kv.second;
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_PaintKit", def); wsprintfA(buf, "%d", cfg.paintKit); WritePrivateProfileStringA("SkinChanger", keyBuf, buf, configPath.c_str());
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Wear", def);     sprintf_s(buf, sizeof(buf), "%.4f", cfg.wear); WritePrivateProfileStringA("SkinChanger", keyBuf, buf, configPath.c_str());
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Seed", def);     wsprintfA(buf, "%d", cfg.seed); WritePrivateProfileStringA("SkinChanger", keyBuf, buf, configPath.c_str());
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Name", def);     WritePrivateProfileStringA("SkinChanger", keyBuf, cfg.customName, configPath.c_str());
+        }
+    }
+
+    // Knife Changer
+    WritePrivateProfileStringA("KnifeChanger", "Enabled", g_knifeEnabled ? "1" : "0", configPath.c_str());
+    wsprintfA(buf, "%d", g_knifeDefIndex); WritePrivateProfileStringA("KnifeChanger", "DefIndex", buf, configPath.c_str());
+    wsprintfA(buf, "%d", g_knifePaintKit); WritePrivateProfileStringA("KnifeChanger", "PaintKit", buf, configPath.c_str());
+    sprintf_s(buf, sizeof(buf), "%.4f", g_knifeWear); WritePrivateProfileStringA("KnifeChanger", "Wear", buf, configPath.c_str());
+    wsprintfA(buf, "%d", g_knifeSeed); WritePrivateProfileStringA("KnifeChanger", "Seed", buf, configPath.c_str());
+    WritePrivateProfileStringA("KnifeChanger", "Name", g_knifeName, configPath.c_str());
 }
 
 void LoadConfig()
@@ -159,4 +181,36 @@ void LoadConfig()
             // ApplyClientStyle(); // ИСПРАВЛЕНО: Убрано. Контекст ImGui тут еще не создан!
         }
     }
+
+    // Skin Changer
+    g_skinChangerEnabled = GetPrivateProfileIntA("SkinChanger", "Enabled", g_skinChangerEnabled ? 1 : 0, configPath.c_str()) != 0;
+    {
+        char keyBuf[64];
+        for (auto& kv : g_skinConfig) {
+            const int def = kv.first;
+            WeaponSkinCfg& cfg = kv.second;
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_PaintKit", def);
+            cfg.paintKit = GetPrivateProfileIntA("SkinChanger", keyBuf, cfg.paintKit, configPath.c_str());
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Wear", def);
+            char wearStr[32]; sprintf_s(wearStr, sizeof(wearStr), "%.4f", cfg.wear);
+            GetPrivateProfileStringA("SkinChanger", keyBuf, wearStr, buf, sizeof(buf), configPath.c_str());
+            cfg.wear = (float)atof(buf);
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Seed", def);
+            cfg.seed = GetPrivateProfileIntA("SkinChanger", keyBuf, cfg.seed, configPath.c_str());
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Name", def);
+            GetPrivateProfileStringA("SkinChanger", keyBuf, "", cfg.customName, (DWORD)sizeof(cfg.customName), configPath.c_str());
+        }
+    }
+
+    // Knife Changer
+    g_knifeEnabled = GetPrivateProfileIntA("KnifeChanger", "Enabled", g_knifeEnabled ? 1 : 0, configPath.c_str()) != 0;
+    g_knifeDefIndex = GetPrivateProfileIntA("KnifeChanger", "DefIndex", g_knifeDefIndex, configPath.c_str());
+    g_knifePaintKit = GetPrivateProfileIntA("KnifeChanger", "PaintKit", g_knifePaintKit, configPath.c_str());
+    {
+        char wearStr[32]; sprintf_s(wearStr, sizeof(wearStr), "%.4f", g_knifeWear);
+        GetPrivateProfileStringA("KnifeChanger", "Wear", wearStr, buf, sizeof(buf), configPath.c_str());
+        g_knifeWear = (float)atof(buf);
+    }
+    g_knifeSeed = GetPrivateProfileIntA("KnifeChanger", "Seed", g_knifeSeed, configPath.c_str());
+    GetPrivateProfileStringA("KnifeChanger", "Name", "", g_knifeName, (DWORD)sizeof(g_knifeName), configPath.c_str());
 }
