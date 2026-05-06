@@ -111,17 +111,32 @@ DWORD WINAPI MainThread(LPVOID)
 
 	Sleep(500);
 
+	MessageBoxA(NULL, "[1] Modules loaded, starting init...", "Debug", MB_OK | MB_TOPMOST);
+
 	InitRuntimeOffsets();
+
+	MessageBoxA(NULL, "[2] RuntimeOffsets done", "Debug", MB_OK | MB_TOPMOST);
 
 	// Инициализация нового скинчейнджера (valve SDK)
 	g_modules->m_modules.initialize();
+	MessageBoxA(NULL, "[3] g_modules OK", "Debug", MB_OK | MB_TOPMOST);
+
 	g_interfaces->initialize();
+	MessageBoxA(NULL, "[4] g_interfaces OK", "Debug", MB_OK | MB_TOPMOST);
+
 	g_item_schema->initialize();
+	MessageBoxA(NULL, g_item_schema->is_initialized()
+		? "[5] item_schema OK (initialized)"
+		: "[5] item_schema SKIPPED (not ready yet, will retry later)", "Debug", MB_OK | MB_TOPMOST);
+
 	g_skin_changer->initialize();
+	MessageBoxA(NULL, "[6] skin_changer OK", "Debug", MB_OK | MB_TOPMOST);
 
 	LoadConfig();
+	MessageBoxA(NULL, "[7] Config loaded", "Debug", MB_OK | MB_TOPMOST);
 	
 	InitHooks(); // Инициализация VTable хука для реал-тайм скинов
+	MessageBoxA(NULL, "[8] Hooks installed. Init complete!", "Debug", MB_OK | MB_TOPMOST);
 
 	WNDCLASSEXW wc{};
 	wc.cbSize = sizeof(WNDCLASSEXW);
