@@ -1,27 +1,25 @@
 #include "hooks.h"
 #include "../core/globals.h"
 #include "../core/memory.h"
-#include "../features/skinchanger/skinchanger.h"
+#include "../features/skinchanger/skin_changer.hpp"
+#include "../features/skinchanger/glove_changer.hpp"
 #include "../../MinHook.h"
 #include "../../resource.h"
+#include "../../main.hpp"
 
 // ==================== НОВЫЕ ФУНКЦИИ (INTERNAL HOOKS) ====================
 
 void __fastcall hkFrameStageNotify(void* rcx, int curStage) {
-	// ВОЗВРАЩАЕМ FRAME_RENDER_START (6)
-	// Стадия 4 не работает на текущем патче CS2 для записи в Weapons (перезаписывается сервером).
-	// Стадия 6 (5 или 6) - это момент отрисовки, тут наше изменение будет финальным.
-	
-	// Проверка ревизии для обновления при смене в меню
-	if (g_skinUpdateCounter != g_lastSkinUpdateCounterSeen) {
-		g_lastSkinUpdateCounterSeen = g_skinUpdateCounter;
-		++g_skinRevision;
-		if (g_skinRevision <= 0) g_skinRevision = 1;
+	// Обновляем указатель на локального игрока для нового скинчейнджера
+	if (g_interfaces && g_interfaces->m_entity_system) {
+		g_ctx->m_local_pawn = g_interfaces->m_entity_system->get_local_pawn();
+		g_ctx->m_local_controller = g_interfaces->m_entity_system->get_local_controller();
 	}
-	
-	if ((curStage == 6) && g_skinChangerEnabled) 
-	{
-		UpdateSkinChangerHooked();
+
+	// Стадия 7 (FRAME_RENDER_END) — запись финальная, не перезаписывается сервером
+	if (curStage == 7) {
+		g_skin_changer->run(curStage);
+		g_glove_changer->run(curStage);
 	}
 	oFrameStageNotify(rcx, curStage);
 }
@@ -63,4 +61,4 @@ void RemoveHooks() {
 	}
 }
 
-// UpdateSkinChanger - УДАЛЕНА (устаревшая, заменена на UpdateSkinChangerHooked)
+// UpdateSkinChanger - УДАЛЕНА (заменена на g_skin_changer->run() / g_glove_changer->run())

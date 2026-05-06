@@ -5,7 +5,10 @@
 #include "../core/memory.h"
 #include "../config/config_io.h"
 #include "../config/paths.h"
-#include "../features/skinchanger/skinchanger.h"
+#include "../features/skinchanger/skin_changer.hpp"
+#include "../features/skinchanger/glove_changer.hpp"
+#include "../features/skinchanger/item_schema.hpp"
+#include "../../main.hpp"
 #include "imgui.h"
 #include "imgui_internal.h"
 
@@ -497,246 +500,165 @@ void DrawMenuImGui()
 	}
 	else if (activeTab == TAB_SKINS)
 	{
-		if (!g_skinWarningShown) {
-			ImGui::OpenPopup("##skin_warning");
-		}
-		
-		ImGui::SetNextWindowSize(ImVec2(650.0f, 420.0f));
-		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-		if (ImGui::BeginPopupModal("##skin_warning", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-			ImDrawList* pdl = ImGui::GetWindowDrawList();
-			ImVec2 wp = ImGui::GetWindowPos();
-			ImVec2 ws = ImGui::GetWindowSize();
-			
-			// Та же градиентная линия сверху как у основного меню
-			ImU32 col1 = ImGui::ColorConvertFloat4ToU32(ImVec4(g_guiColor.x, g_guiColor.y, g_guiColor.z, 1.0f));
-			ImU32 col2 = ImGui::ColorConvertFloat4ToU32(ImVec4(g_guiColor.x * 0.5f, g_guiColor.y * 0.3f, 1.0f, 1.0f));
-			pdl->AddRectFilledMultiColor(wp, ImVec2(wp.x + ws.x, wp.y + 4.0f), col1, col2, col2, col1);
-			
-			ImGui::SetCursorPos(ImVec2(18, 20));
-			ImGui::TextColored(g_guiColor, "OXRANALOUTABA CLIENT — Skin Changer");
-			ImGui::SetCursorPosY(45);
-			ImGui::Separator();
-			
-			ImGui::SetCursorPos(ImVec2(18, 70));
-			ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.2f, 1.0f), "Предупреждение");
-			ImGui::Spacing();
-			ImGui::SetCursorPosX(18);
-			ImGui::TextWrapped("Скины применяются через FallbackPaintKit — это клиентский метод.");
-			ImGui::Spacing();
-			ImGui::SetCursorPosX(18);
-			ImGui::TextWrapped("UV-развёртка на некоторых скинах может отображаться некорректно. Это ожидаемое поведение данного метода, а не баг.");
-			ImGui::Spacing();
-			ImGui::SetCursorPosX(18);
-			ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Это сообщение показывается только один раз.");
-			
-			ImGui::SetCursorPos(ImVec2(ws.x * 0.5f - 60.0f, ws.y - 55.0f));
-			ImGui::PushStyleColor(ImGuiCol_Button, g_guiColor);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(g_guiColor.x + 0.1f, g_guiColor.y + 0.1f, g_guiColor.z + 0.1f, 1.0f));
-			if (ImGui::Button("Хорошо", ImVec2(120.0f, 36.0f))) {
-				g_skinWarningShown = true;
-				SaveConfig();
-				ImGui::CloseCurrentPopup();
-			}
-			ImGui::PopStyleColor(2);
-			
-			ImGui::EndPopup();
-		}
-		
-		PremiumToggle("Enable Skin Changer", &g_skinChangerEnabled);
-		if (ImGui::IsItemClicked()) MarkDirty();
-		
-		ImGui::Separator();
-		ImGui::Text("Скины (Обновляются моментально!):");
-		ImGui::TextDisabled("Кликни по оружию ниже, чтобы развернуть и настроить wear / seed / имя.");
-		ImGui::Spacing();
-
-		// Универсальный рендерер блока «один тип оружия».
-		// def — C_EconItemView::m_iItemDefinitionIndex (ключ g_skinConfig).
-		// names/kits — список вариантов в комбобоксе.
-		auto DrawWeaponSkinRow = [&](const char* label, int def,
-			const char* const* names, const int* kits, int count)
-		{
-			WeaponSkinCfg& cfg = g_skinConfig[def];
-			
-			// Найти текущий индекс по cfg.paintKit (или 0 = Default).
-			int curIdx = 0;
-			for (int i = 0; i < count; ++i) {
-				if (kits[i] == cfg.paintKit) { curIdx = i; break; }
-			}
-
-			ImGui::PushID(def);
-			if (ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_SpanAvailWidth)) {
-				if (ImGui::Combo("Skin", &curIdx, names, count)) {
-					cfg.paintKit = kits[curIdx];
-					g_skinUpdateCounter++;
-					MarkDirty();
-				}
-				if (ImGui::SliderFloat("Wear", &cfg.wear, 0.0001f, 1.0f, "%.4f")) {
-					g_skinUpdateCounter++;
-					MarkDirty();
-				}
-				if (ImGui::InputInt("Seed", &cfg.seed)) {
-					if (cfg.seed < 0) cfg.seed = 0;
-					if (cfg.seed > 1000) cfg.seed = 1000;
-					g_skinUpdateCounter++;
-					MarkDirty();
-				}
-				if (ImGui::InputText("Name", cfg.customName, IM_ARRAYSIZE(cfg.customName))) {
-					g_skinUpdateCounter++;
-					MarkDirty();
-				}
-				ImGui::TreePop();
-			} else {
-				// При свёрнутом узле справа от заголовка показываем выбранный скин.
-				ImGui::SameLine();
-				ImGui::TextDisabled("(%s)", names[curIdx]);
-			}
-			ImGui::PopID();
-		};
-
-		// === TEC-9 ===
-		static const char* tec9Skins[] = { "Default", "Decimator", "Fuel Injector", "Remote Control", "Isaac", "Toxic", "Avalanche", "Re-Entry", "Brother" };
-		static const int tec9PaintKits[] = { 0, 644, 614, 791, 303, 374, 520, 539, 1099 };
-		DrawWeaponSkinRow("Tec-9", 30, tec9Skins, tec9PaintKits, IM_ARRAYSIZE(tec9Skins));
-
-		// === USP-S ===
-		static const char* uspSkins[] = { "Default", "Printstream", "The Traitor", "Neo-Noir", "Kill Confirmed", "Jawbreaker", "Monster Mashup", "Caiman", "Serum", "Orion", "Whiteout", "Target Acquired", "Ticket to Hell", "Cortex" };
-		static const int uspPaintKits[] = { 0, 1142, 1040, 653, 504, 1173, 991, 339, 221, 313, 1065, 1027, 1146, 705 };
-		DrawWeaponSkinRow("USP-S", 61, uspSkins, uspPaintKits, IM_ARRAYSIZE(uspSkins));
-
-		// === GLOCK-18 ===
-		static const char* glockSkins[] = { "Default", "Twilight Galaxy", "Vogue", "Water Elemental", "Snack Attack", "Gamma Doppler Emerald", "Wasteland Rebel", "Bullet Queen", "Neo-Noir", "Fade", "Moonrise", "Nuclear Garden" };
-		static const int glockPaintKits[] = { 0, 437, 963, 353, 1100, 1119, 586, 957, 988, 38, 707, 536 };
-		DrawWeaponSkinRow("Glock-18", 4, glockSkins, glockPaintKits, IM_ARRAYSIZE(glockSkins));
-
-		// === AK-47 ===
-		static const char* akSkins[] = { "Default", "Nightwish", "Leet Museo", "Legion of Anubis", "Asiimov", "Neon Rider", "The Empress", "Bloodsport", "Neon Revolution", "Fuel Injector", "Aquamarine Revenge", "Wasteland Rebel", "Jaguar", "Vulcan", "Fire Serpent", "Gold Arabesque", "X-Ray", "Wild Lotus", "Ice Coaled", "Phantom Disruptor", "Point Disarray", "Frontside Misty", "Cartel", "Redline", "Case Hardened", "Red Laminate", "Panthera onca", "Hydroponic", "Jet Set" };
-		static const int akPaintKits[] = { 0, 1141, 1087, 959, 551, 433, 675, 597, 600, 524, 474, 380, 316, 302, 180, 1026, 1004, 724, 1143, 941, 506, 490, 528, 282, 44, 14, 1018, 456, 340 };
-		DrawWeaponSkinRow("AK-47", 7, akSkins, akPaintKits, IM_ARRAYSIZE(akSkins));
-
-		// === AWP ===
-		static const char* awpSkins[] = { "Default", "Printstream", "Chromatic Aberration", "Containment Breach", "Wildfire", "Neo-Noir", "Oni Taiji", "Hyper Beast", "Man-o'-war", "Asiimov", "Lightning Strike", "Desert Hydra", "Fade", "The Prince", "Gungnir", "Medusa", "Dragon Lore", "Ice Coaled", "Mortis", "Fever Dream", "Elite Build", "Corticera", "Redline", "Electric Hive", "Graphite", "BOOM", "Silk Tiger" };
-		static const int awpPaintKits[] = { 0, 1144, 1120, 887, 917, 803, 662, 475, 395, 279, 51, 1058, 1022, 736, 756, 446, 344, 1143, 691, 640, 525, 181, 259, 227, 212, 174, 1029 };
-		DrawWeaponSkinRow("AWP", 9, awpSkins, awpPaintKits, IM_ARRAYSIZE(awpSkins));
-
-		// === FAMAS ===
-		static const char* famasSkins[] = { "Default", "Commemoration", "Roll Cage", "Rapid Eye Movement", "Eye of Athena", "Mecha Industries", "Djinn", "Afterimage", "Waters of Nephthys", "Meltdown", "Valence" };
-		static const int famasPaintKits[] = { 0, 919, 604, 1127, 723, 587, 429, 154, 1128, 1053, 529 };
-		DrawWeaponSkinRow("FAMAS", 10, famasSkins, famasPaintKits, IM_ARRAYSIZE(famasSkins));
-
-		// === GALIL-AR ===
-		static const char* galilSkins[] = { "Default", "Chatterbox", "Chromatic Aberration", "Sugar Rush", "Eco", "Cerberus", "Rocket Pop" };
-		static const int galilPaintKits[] = { 0, 398, 1144, 661, 428, 379, 478 };
-		DrawWeaponSkinRow("Galil-AR", 13, galilSkins, galilPaintKits, IM_ARRAYSIZE(galilSkins));
-
-		// === M4A1-S ===
-		static const char* m4a1sSkins[] = { "Default", "Printstream", "Player Two", "Mecha Industries", "Chantico's Fire", "Golden Coil", "Hyper Beast", "Cyrex", "Fade", "Imminent Danger", "Welcome to the Jungle", "Black Lotus", "Nightmare", "Leaded Glass", "Decimator", "Atomic Alloy", "Guardian", "Blue Phosphor", "Control Panel", "Hot Rod", "Master Piece", "Knight" };
-		static const int m4a1sPaintKits[] = { 0, 984, 946, 587, 548, 497, 430, 312, 1041, 1073, 1001, 1102, 714, 681, 644, 301, 257, 1017, 792, 445, 321, 326 };
-		DrawWeaponSkinRow("M4A1-S", 60, m4a1sSkins, m4a1sPaintKits, IM_ARRAYSIZE(m4a1sSkins));
-
-		// === M4A4 ===
-		static const char* m4a4Skins[] = { "Default", "Howl", "In Living Color", "The Emperor", "Neo-Noir", "Buzz Kill", "The Battlestar", "Royal Paladin", "Bullet Rain", "Desert-Strike", "Asiimov", "X-Ray", "The Coalition", "Cyber Security", "Tooth Fairy", "Hellfire", "Desolate Space", "Dragon King", "Poseidon" };
-		static const int m4a4PaintKits[] = { 0, 309, 1041, 844, 695, 632, 533, 512, 155, 336, 255, 215, 1063, 985, 971, 664, 588, 400, 449 };
-		DrawWeaponSkinRow("M4A4", 16, m4a4Skins, m4a4PaintKits, IM_ARRAYSIZE(m4a4Skins));
-
-		// === SSG-08 ===
-		static const char* ssgSkins[] = { "Default", "Dragonfire", "Blood in the Water", "Turbo Peek", "Bloodshot", "Big Iron", "Death Strike" };
-		static const int ssgPaintKits[] = { 0, 624, 222, 1101, 899, 503, 1052 };
-		DrawWeaponSkinRow("SSG-08", 40, ssgSkins, ssgPaintKits, IM_ARRAYSIZE(ssgSkins));
-
-		// === DESERT EAGLE ===
-		static const char* deagleSkins[] = { "Default", "Ocean Drive", "Printstream", "Code Red", "Golden Koi", "Mecha Industries", "Kumicho Dragon", "Conspiracy", "Cobalt Disruption", "Hypnotic", "Fennec Fox" };
-		static const int deaglePaintKits[] = { 0, 1090, 984, 711, 185, 587, 527, 351, 231, 61, 1051 };
-		DrawWeaponSkinRow("Desert Eagle", 1, deagleSkins, deaglePaintKits, IM_ARRAYSIZE(deagleSkins));
-
-		ImGui::Spacing();
-		ImGui::Separator();
-
 		// === KNIFE CHANGER ===
-		// Список ножей (def_index из C_EconItemView::m_iItemDefinitionIndex).
-		// «Default» = 0 = «не менять модель» (paint kit всё равно применится к стоковому ножу).
-		static const char* knifeNames[] = {
-			"Default (модель не меняется)",
-			"Bayonet", "Flip Knife", "Gut Knife", "Karambit", "M9 Bayonet",
-			"Huntsman Knife", "Falchion Knife", "Bowie Knife", "Butterfly Knife",
-			"Shadow Daggers", "Paracord Knife", "Survival Knife", "Ursus Knife",
-			"Navaja Knife", "Nomad Knife", "Stiletto Knife", "Talon Knife",
-			"Skeleton Knife", "Classic Knife", "Kukri Knife"
-		};
-		static const int knifeDefs[] = {
-			0,
-			500, 505, 506, 507, 508,
-			509, 512, 514, 515,
-			516, 517, 518, 519,
-			520, 521, 522, 523,
-			525, 503, 526
-		};
-		static_assert(IM_ARRAYSIZE(knifeNames) == IM_ARRAYSIZE(knifeDefs), "knife arrays must match");
-
-		// Универсальные «ножевые» paint kits (в т.ч. редкие — Doppler, Fade, etc.)
-		static const char* knifeSkinNames[] = {
-			"Default (no skin)", "Vanilla (default model only)",
-			"Crimson Web", "Slaughter", "Case Hardened", "Fade", "Forest DDPAT",
-			"Stained", "Blue Steel", "Boreal Forest", "Doppler",
-			"Damascus Steel", "Ultraviolet", "Marble Fade", "Tiger Tooth",
-			"Rust Coat", "Night", "Safari Mesh", "Scorched", "Urban Masked",
-			"Black Laminate", "Gamma Doppler"
-		};
-		static const int knifeSkinKits[] = {
-			0, 0,
-			12, 41, 44, 38, 5,
-			15, 42, 8, 417,
-			558, 419, 413, 409,
-			421, 17, 9, 34, 35,
-			15, 568
-		};
-		static_assert(IM_ARRAYSIZE(knifeSkinNames) == IM_ARRAYSIZE(knifeSkinKits), "knife skin arrays must match");
-
 		ImGui::Text("Knife Changer:");
 		ImGui::Spacing();
-		PremiumToggle("Enable Knife Changer", &g_knifeEnabled);
+		ImGui::Checkbox("Enable Knife Changer", &g_cfg->knife_changer.m_enabled);
 		if (ImGui::IsItemClicked()) MarkDirty();
 
-		if (g_knifeEnabled) {
-			// Текущие индексы по сохранённым значениям.
-			int knifeModelIdx = 0;
-			for (int i = 0; i < IM_ARRAYSIZE(knifeDefs); ++i) {
-				if (knifeDefs[i] == g_knifeDefIndex) { knifeModelIdx = i; break; }
+		if (g_cfg->knife_changer.m_enabled) {
+			if (g_item_schema->is_initialized() && !g_item_schema->knife_names_cstr.empty()) {
+				if (ImGui::Combo("Knife Model", &g_cfg->knife_changer.m_knife,
+					g_item_schema->knife_names_cstr.data(),
+					(int)g_item_schema->knife_names_cstr.size())) {
+					g_skin_changer->should_update = true;
+					MarkDirty();
+				}
 			}
-			int knifeSkinIdx = 0;
-			for (int i = 0; i < IM_ARRAYSIZE(knifeSkinKits); ++i) {
-				if (knifeSkinKits[i] == g_knifePaintKit) { knifeSkinIdx = i; break; }
+
+			uint16_t selected_knife = 0;
+			if (g_item_schema->is_initialized() &&
+				g_cfg->knife_changer.m_knife < (int)g_item_schema->knives.size()) {
+				selected_knife = g_item_schema->knives[g_cfg->knife_changer.m_knife].definition_index;
 			}
-			if (ImGui::Combo("Knife Model", &knifeModelIdx, knifeNames, IM_ARRAYSIZE(knifeNames))) {
-				g_knifeDefIndex = knifeDefs[knifeModelIdx];
-				g_skinUpdateCounter++;
+
+			if (g_item_schema->is_initialized()) {
+				auto& knife_skins = g_item_schema->get_paint_kit_names_for_item(selected_knife);
+				if (!knife_skins.empty()) {
+					if (ImGui::Combo("Knife Skin", &g_cfg->knife_changer.m_paint_kit,
+						knife_skins.data(), (int)knife_skins.size())) {
+						g_skin_changer->should_update = true;
+						MarkDirty();
+					}
+				}
+			}
+
+			if (ImGui::SliderFloat("Knife Wear", &g_cfg->knife_changer.m_wear, 0.0001f, 1.0f, "%.4f")) {
+				g_skin_changer->should_update = true;
 				MarkDirty();
 			}
-			if (ImGui::Combo("Knife Skin", &knifeSkinIdx, knifeSkinNames, IM_ARRAYSIZE(knifeSkinNames))) {
-				g_knifePaintKit = knifeSkinKits[knifeSkinIdx];
-				g_skinUpdateCounter++;
+			if (ImGui::InputInt("Knife Seed", &g_cfg->knife_changer.m_seed)) {
+				if (g_cfg->knife_changer.m_seed < 0) g_cfg->knife_changer.m_seed = 0;
+				if (g_cfg->knife_changer.m_seed > 1000) g_cfg->knife_changer.m_seed = 1000;
+				g_skin_changer->should_update = true;
 				MarkDirty();
 			}
-			if (ImGui::SliderFloat("Knife Wear", &g_knifeWear, 0.0001f, 1.0f, "%.4f")) {
-				g_skinUpdateCounter++;
-				MarkDirty();
-			}
-			if (ImGui::InputInt("Knife Seed", &g_knifeSeed)) {
-				if (g_knifeSeed < 0) g_knifeSeed = 0;
-				if (g_knifeSeed > 1000) g_knifeSeed = 1000;
-				g_skinUpdateCounter++;
-				MarkDirty();
-			}
-			if (ImGui::InputText("Knife Name", g_knifeName, IM_ARRAYSIZE(g_knifeName))) {
-				g_skinUpdateCounter++;
+			if (ImGui::InputText("Knife Name", g_cfg->knife_changer.m_custom_name, sizeof(g_cfg->knife_changer.m_custom_name))) {
+				g_skin_changer->should_update = true;
 				MarkDirty();
 			}
 		}
 
 		ImGui::Spacing();
 		ImGui::Separator();
-		ImGui::TextDisabled("Перчатки и агенты пока не поддерживаются — требуют движкового рефреша.");
+
+		// === GLOVE CHANGER ===
+		ImGui::Text("Glove Changer:");
+		ImGui::Spacing();
+		ImGui::Checkbox("Enable Glove Changer", &g_cfg->glove_changer.m_enabled);
+		if (ImGui::IsItemClicked()) MarkDirty();
+
+		if (g_cfg->glove_changer.m_enabled) {
+			if (g_item_schema->is_initialized() && !g_item_schema->glove_names_cstr.empty()) {
+				if (ImGui::Combo("Glove Model", &g_cfg->glove_changer.m_glove,
+					g_item_schema->glove_names_cstr.data(),
+					(int)g_item_schema->glove_names_cstr.size())) {
+					g_glove_changer->should_update = true;
+					MarkDirty();
+				}
+			}
+
+			uint16_t selected_glove = 0;
+			if (g_item_schema->is_initialized() &&
+				g_cfg->glove_changer.m_glove < (int)g_item_schema->gloves.size()) {
+				selected_glove = g_item_schema->gloves[g_cfg->glove_changer.m_glove].definition_index;
+			}
+
+			static int last_glove = -1;
+			if (last_glove != g_cfg->glove_changer.m_glove) {
+				auto& glove_skins = g_item_schema->get_paint_kit_names_for_item(selected_glove);
+				g_cfg->glove_changer.m_paint_kit = (glove_skins.size() > 1) ? 1 : 0;
+				last_glove = g_cfg->glove_changer.m_glove;
+			}
+
+			if (g_item_schema->is_initialized()) {
+				auto& glove_skins = g_item_schema->get_paint_kit_names_for_item(selected_glove);
+				if (!glove_skins.empty()) {
+					if (ImGui::Combo("Glove Skin", &g_cfg->glove_changer.m_paint_kit,
+						glove_skins.data(), (int)glove_skins.size())) {
+						g_glove_changer->should_update = true;
+						MarkDirty();
+					}
+				}
+			}
+
+			if (ImGui::SliderFloat("Glove Wear", &g_cfg->glove_changer.m_wear, 0.0001f, 1.0f, "%.4f")) {
+				g_glove_changer->should_update = true;
+				MarkDirty();
+			}
+			if (ImGui::InputInt("Glove Seed", &g_cfg->glove_changer.m_seed)) {
+				if (g_cfg->glove_changer.m_seed < 0) g_cfg->glove_changer.m_seed = 0;
+				if (g_cfg->glove_changer.m_seed > 1000) g_cfg->glove_changer.m_seed = 1000;
+				g_glove_changer->should_update = true;
+				MarkDirty();
+			}
+		}
+
+		ImGui::Spacing();
+		ImGui::Separator();
+
+		// === SKIN CHANGER ===
+		ImGui::Text("Skin Changer:");
+		ImGui::Spacing();
+		ImGui::Checkbox("Enable Skin Changer", &g_cfg->skin_changer.m_enabled);
+		if (ImGui::IsItemClicked()) MarkDirty();
+
+		if (g_cfg->skin_changer.m_enabled && g_item_schema->is_initialized()) {
+			if (!g_item_schema->weapon_names_cstr.empty()) {
+				if (ImGui::Combo("Weapon", &g_cfg->skin_changer.m_selected_weapon,
+					g_item_schema->weapon_names_cstr.data(),
+					(int)g_item_schema->weapon_names_cstr.size())) {
+					MarkDirty();
+				}
+			}
+
+			uint16_t selected_weapon_def = 0;
+			if (g_cfg->skin_changer.m_selected_weapon < (int)g_item_schema->weapons.size()) {
+				selected_weapon_def = g_item_schema->weapons[g_cfg->skin_changer.m_selected_weapon].definition_index;
+			}
+
+			if (selected_weapon_def > 0) {
+				int config_index = c_config::skin_changer_t::get_config_index(selected_weapon_def);
+				auto& weapon_skin = g_cfg->skin_changer.weapon_skins[config_index];
+
+				auto& weapon_skins = g_item_schema->get_paint_kit_names_for_item(selected_weapon_def);
+				if (!weapon_skins.empty()) {
+					if (ImGui::Combo("Skin", &weapon_skin.paint_kit,
+						weapon_skins.data(), (int)weapon_skins.size())) {
+						g_skin_changer->should_update = true;
+						MarkDirty();
+					}
+				}
+
+				if (ImGui::SliderFloat("Wear", &weapon_skin.wear, 0.0001f, 1.0f, "%.4f")) {
+					g_skin_changer->should_update = true;
+					MarkDirty();
+				}
+				if (ImGui::InputInt("Seed", &weapon_skin.seed)) {
+					if (weapon_skin.seed < 0) weapon_skin.seed = 0;
+					if (weapon_skin.seed > 1000) weapon_skin.seed = 1000;
+					g_skin_changer->should_update = true;
+					MarkDirty();
+				}
+				if (ImGui::InputText("Custom Name", weapon_skin.custom_name, sizeof(weapon_skin.custom_name))) {
+					g_skin_changer->should_update = true;
+					MarkDirty();
+				}
+			}
+		}
+
+		ImGui::Spacing();
+		ImGui::TextDisabled("Скины подгружаются из item_schema движка — полный список.");
 	}
 	else if (activeTab == TAB_CONFIGS)
 	{

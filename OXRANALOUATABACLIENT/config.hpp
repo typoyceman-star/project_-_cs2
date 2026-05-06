@@ -36,7 +36,8 @@ public:
 			char custom_name[161] = {};
 		};
 
-		weapon_skin_t weapon_skins[100];
+		static constexpr int MAX_WEAPONS = 100;
+		weapon_skin_t weapon_skins[MAX_WEAPONS];
 
 		static int get_config_index(uint16_t def_index) {
 			if (def_index >= 1 && def_index <= 70) return def_index;
