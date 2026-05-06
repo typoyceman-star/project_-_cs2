@@ -52,8 +52,7 @@ void** g_pSource2ClientVTable = nullptr;
 
 // ---- Меню / общие тогглы ----
 bool g_menuOpen = false;
-bool g_skinMenuOpen = false;
-bool g_skinWarningShown = false;
+// g_skinMenuOpen, g_skinWarningShown — удалены (не используются новым скинчейнджером).
 bool g_antiCaptureEnabled = false;
 
 // ---- External features ----

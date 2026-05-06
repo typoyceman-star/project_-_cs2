@@ -59,7 +59,7 @@ void SaveConfig()
     WritePrivateProfileStringA("Visuals", "KeybindsList", g_keybindsListEnabled ? "1" : "0", configPath.c_str());
     
     // Misc
-    WritePrivateProfileStringA("Misc", "SkinWarningShown", g_skinWarningShown ? "1" : "0", configPath.c_str());
+    // SkinWarningShown — удалён (предупреждение больше не нужно).
     WritePrivateProfileStringA("Misc", "AutoStrafe", g_autoStrafeEnabled ? "1" : "0", configPath.c_str());
     WritePrivateProfileStringA("Misc", "AntiCapture", g_antiCaptureEnabled ? "1" : "0", configPath.c_str());
     WritePrivateProfileStringA("Combat", "AimbotEnabled", g_aimbotEnabled ? "1" : "0", configPath.c_str());
@@ -165,7 +165,7 @@ void LoadConfig()
     g_keybindsListEnabled = GetPrivateProfileIntA("Visuals", "KeybindsList", g_keybindsListEnabled ? 1 : 0, configPath.c_str()) != 0;
     
     // Misc
-    g_skinWarningShown = GetPrivateProfileIntA("Misc", "SkinWarningShown", g_skinWarningShown ? 1 : 0, configPath.c_str()) != 0;
+    // SkinWarningShown — загрузка удалена.
     g_autoStrafeEnabled = GetPrivateProfileIntA("Misc", "AutoStrafe", g_autoStrafeEnabled ? 1 : 0, configPath.c_str()) != 0;
     g_antiCaptureEnabled = GetPrivateProfileIntA("Misc", "AntiCapture", g_antiCaptureEnabled ? 1 : 0, configPath.c_str()) != 0;
     g_aimbotEnabled = GetPrivateProfileIntA("Combat", "AimbotEnabled", g_aimbotEnabled ? 1 : 0, configPath.c_str()) != 0;

@@ -78,8 +78,7 @@ constexpr int FRAMESTAGENOTIFY_INDEX = 36;
 
 // ---- Меню / общие тогглы ----
 extern bool g_menuOpen;
-extern bool g_skinMenuOpen;
-extern bool g_skinWarningShown;
+// g_skinMenuOpen, g_skinWarningShown — удалены (старые заглушки скинменю).
 extern bool g_antiCaptureEnabled;
 
 // ---- External features ----
