@@ -9,7 +9,11 @@
 
 // ==================== НОВЫЕ ФУНКЦИИ (INTERNAL HOOKS) ====================
 
+extern void debug_log(const char* msg);
+extern void debug_logf(const char* fmt, ...);
+
 static volatile long g_hook_debug_counter = 0;
+static volatile long g_hook_crash_counter = 0;
 
 void __fastcall hkFrameStageNotify(void* rcx, int curStage) {
 	long count = InterlockedIncrement(&g_hook_debug_counter);
@@ -28,8 +32,9 @@ void __fastcall hkFrameStageNotify(void* rcx, int curStage) {
 		}
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER) {
-		if (count <= 3)
-			MessageBoxA(NULL, "[CRASH] Exception in hkFrameStageNotify! Skinchanger crashed.", "Debug", MB_OK | MB_TOPMOST);
+		long crashes = InterlockedIncrement(&g_hook_crash_counter);
+		if (crashes <= 5)
+			debug_logf("[CRASH #%d] Exception in hkFrameStageNotify (stage=%d, call=%d)", crashes, curStage, count);
 	}
 
 	oFrameStageNotify(rcx, curStage);
@@ -57,12 +62,9 @@ void InitHooks() {
 		g_pSource2ClientVTable[FRAMESTAGENOTIFY_INDEX] = (void*)hkFrameStageNotify;
 		VirtualProtect(&g_pSource2ClientVTable[FRAMESTAGENOTIFY_INDEX], sizeof(void*), oldProtect, &oldProtect);
 
-		char buf[128];
-		sprintf_s(buf, "[8a] Hook installed: vtable[%d] = %p, orig = %p",
-			FRAMESTAGENOTIFY_INDEX, (void*)hkFrameStageNotify, (void*)oFrameStageNotify);
-		MessageBoxA(NULL, buf, "Debug", MB_OK | MB_TOPMOST);
+		debug_logf("[8a] Hook installed: vtable[%d], orig=%p", FRAMESTAGENOTIFY_INDEX, (void*)oFrameStageNotify);
 	} else {
-		MessageBoxA(NULL, "[8a] FAILED: Source2Client002 not found!", "Debug", MB_OK | MB_TOPMOST);
+		debug_log("[8a] FAILED: Source2Client002 not found!");
 	}
 }
 
