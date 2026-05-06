@@ -90,12 +90,14 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;OXRANALOUATABACLIENT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)imgui-1.92.5;$(ProjectDir)imgui-1.92.5\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)imgui-1.92.5;$(ProjectDir)imgui-1.92.5\backends;$(ProjectDir)sdk\includes\protobufs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>$(ProjectDir)sdk\includes\protobufs\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libprotobufd.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -107,12 +109,14 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;OXRANALOUATABACLIENT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)imgui-1.92.5;$(ProjectDir)imgui-1.92.5\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)imgui-1.92.5;$(ProjectDir)imgui-1.92.5\backends;$(ProjectDir)sdk\includes\protobufs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>$(ProjectDir)sdk\includes\protobufs\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libprotobuf.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,12 +126,14 @@
       <PreprocessorDefinitions>_DEBUG;OXRANALOUATABACLIENT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)imgui-1.92.5;$(ProjectDir)imgui-1.92.5\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)imgui-1.92.5;$(ProjectDir)imgui-1.92.5\backends;$(ProjectDir)sdk\includes\protobufs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>$(ProjectDir)sdk\includes\protobufs\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libprotobufd.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -139,7 +145,7 @@
       <PreprocessorDefinitions>NDEBUG;OXRANALOUATABACLIENT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)imgui-1.92.5;$(ProjectDir)imgui-1.92.5\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)imgui-1.92.5;$(ProjectDir)imgui-1.92.5\backends;$(ProjectDir)sdk\includes\protobufs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -147,6 +153,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>$(ProjectDir)sdk\includes\protobufs\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libprotobuf.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -183,7 +191,12 @@
     <ClInclude Include="functions\features\aimbot\aimbot.h" />
     <ClInclude Include="functions\features\triggerbot\triggerbot.h" />
     <ClInclude Include="functions\features\bhop\bhop.h" />
-    <ClInclude Include="functions\features\skinchanger\skinchanger.h" />
+    <ClInclude Include="functions\features\skinchanger\skin_changer.hpp" />
+    <ClInclude Include="functions\features\skinchanger\glove_changer.hpp" />
+    <ClInclude Include="functions\features\skinchanger\item_schema.hpp" />
+    <ClInclude Include="functions\features\skinchanger\econ_item_attribute_manager.hpp" />
+    <ClInclude Include="config.hpp" />
+    <ClInclude Include="main.hpp" />
     <ClInclude Include="functions\features\fov\fov.h" />
     <ClInclude Include="functions\features\antiflash\antiflash.h" />
     <ClInclude Include="functions\features\nosmoke\nosmoke.h" />
@@ -216,7 +229,21 @@
     <ClCompile Include="functions\features\aimbot\aimbot.cpp" />
     <ClCompile Include="functions\features\triggerbot\triggerbot.cpp" />
     <ClCompile Include="functions\features\bhop\bhop.cpp" />
-    <ClCompile Include="functions\features\skinchanger\skinchanger.cpp" />
+    <ClCompile Include="functions\features\skinchanger\skin_changer.cpp" />
+    <ClCompile Include="functions\features\skinchanger\glove_changer.cpp" />
+    <ClCompile Include="functions\features\skinchanger\item_schema.cpp" />
+    <ClCompile Include="functions\features\skinchanger\econ_item_attribute_manager.cpp" />
+    <ClCompile Include="utils\utils.cpp" />
+    <ClCompile Include="valve\interfaces\interfaces.cpp" />
+    <ClCompile Include="valve\interfaces\vtables\i_localize.cpp" />
+    <ClCompile Include="valve\interfaces\vtables\cs_usercmd.pb.cc" />
+    <ClCompile Include="valve\interfaces\vtables\netmessages.pb.cc" />
+    <ClCompile Include="valve\interfaces\vtables\network_connection.pb.cc" />
+    <ClCompile Include="valve\interfaces\vtables\networkbasetypes.pb.cc" />
+    <ClCompile Include="valve\interfaces\vtables\usercmd.pb.cc" />
+    <ClCompile Include="valve\interfaces\vtables\usermessages.pb.cc" />
+    <ClCompile Include="valve\modules\modules.cpp" />
+    <ClCompile Include="valve\schema\schema.cpp" />
     <ClCompile Include="functions\features\fov\fov.cpp" />
     <ClCompile Include="functions\features\antiflash\antiflash.cpp" />
     <ClCompile Include="functions\features\nosmoke\nosmoke.cpp" />

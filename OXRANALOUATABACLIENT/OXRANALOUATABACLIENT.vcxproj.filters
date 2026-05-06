@@ -156,8 +156,23 @@
     <ClInclude Include="functions\features\bhop\bhop.h">
       <Filter>functions\features\bhop</Filter>
     </ClInclude>
-    <ClInclude Include="functions\features\skinchanger\skinchanger.h">
+    <ClInclude Include="functions\features\skinchanger\skin_changer.hpp">
       <Filter>functions\features\skinchanger</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\skinchanger\glove_changer.hpp">
+      <Filter>functions\features\skinchanger</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\skinchanger\item_schema.hpp">
+      <Filter>functions\features\skinchanger</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\features\skinchanger\econ_item_attribute_manager.hpp">
+      <Filter>functions\features\skinchanger</Filter>
+    </ClInclude>
+    <ClInclude Include="config.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="main.hpp">
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="functions\features\fov\fov.h">
       <Filter>functions\features\fov</Filter>
@@ -248,8 +263,50 @@
     <ClCompile Include="functions\features\bhop\bhop.cpp">
       <Filter>functions\features\bhop</Filter>
     </ClCompile>
-    <ClCompile Include="functions\features\skinchanger\skinchanger.cpp">
+    <ClCompile Include="functions\features\skinchanger\skin_changer.cpp">
       <Filter>functions\features\skinchanger</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\skinchanger\glove_changer.cpp">
+      <Filter>functions\features\skinchanger</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\skinchanger\item_schema.cpp">
+      <Filter>functions\features\skinchanger</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\features\skinchanger\econ_item_attribute_manager.cpp">
+      <Filter>functions\features\skinchanger</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\utils.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="valve\interfaces\interfaces.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="valve\interfaces\vtables\i_localize.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="valve\interfaces\vtables\cs_usercmd.pb.cc">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="valve\interfaces\vtables\netmessages.pb.cc">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="valve\interfaces\vtables\network_connection.pb.cc">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="valve\interfaces\vtables\networkbasetypes.pb.cc">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="valve\interfaces\vtables\usercmd.pb.cc">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="valve\interfaces\vtables\usermessages.pb.cc">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="valve\modules\modules.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="valve\schema\schema.cpp">
+      <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="functions\features\fov\fov.cpp">
       <Filter>functions\features\fov</Filter>
