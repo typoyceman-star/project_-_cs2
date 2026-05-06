@@ -93,25 +93,61 @@ static BOOL wait_for_module(const char* module_name, DWORD timeout_ms) {
 
 static HANDLE g_debug_log = INVALID_HANDLE_VALUE;
 static char g_debug_log_path[MAX_PATH] = {};
+static bool g_console_allocated = false;
 
 static void debug_log_open() {
+	// Try multiple paths in case some are read-only
+	const char* paths[] = {
+		"C:\\debug_log.txt",
+		nullptr, // will be filled with exe-relative path
+		nullptr  // will be filled with TEMP path
+	};
+
 	char exe_path[MAX_PATH] = {};
 	GetModuleFileNameA(nullptr, exe_path, MAX_PATH);
 	char* last_slash = strrchr(exe_path, '\\');
 	if (last_slash) *(last_slash + 1) = '\0';
-	sprintf_s(g_debug_log_path, "%sdebug_log.txt", exe_path);
-	g_debug_log = CreateFileA(g_debug_log_path, GENERIC_WRITE, FILE_SHARE_READ,
-		nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+
+	char exe_log[MAX_PATH] = {};
+	sprintf_s(exe_log, "%sdebug_log.txt", exe_path);
+	paths[1] = exe_log;
+
+	char temp_log[MAX_PATH] = {};
+	GetTempPathA(MAX_PATH, temp_log);
+	strcat_s(temp_log, "debug_log.txt");
+	paths[2] = temp_log;
+
+	for (int i = 0; i < 3; i++) {
+		if (!paths[i]) continue;
+		g_debug_log = CreateFileA(paths[i], GENERIC_WRITE, FILE_SHARE_READ,
+			nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (g_debug_log != INVALID_HANDLE_VALUE) {
+			strcpy_s(g_debug_log_path, paths[i]);
+			break;
+		}
+	}
+
+	if (AllocConsole()) {
+		g_console_allocated = true;
+		FILE* dummy = nullptr;
+		freopen_s(&dummy, "CONOUT$", "w", stdout);
+		SetConsoleTitleA("OXRANA Debug Console");
+	}
 }
 
 void debug_log(const char* msg) {
-	if (g_debug_log == INVALID_HANDLE_VALUE) return;
-	DWORD written = 0;
 	char buf[512];
 	DWORD tick = GetTickCount();
 	sprintf_s(buf, "[%ums] %s\r\n", tick, msg);
-	WriteFile(g_debug_log, buf, (DWORD)strlen(buf), &written, nullptr);
-	FlushFileBuffers(g_debug_log);
+
+	if (g_debug_log != INVALID_HANDLE_VALUE) {
+		DWORD written = 0;
+		WriteFile(g_debug_log, buf, (DWORD)strlen(buf), &written, nullptr);
+		FlushFileBuffers(g_debug_log);
+	}
+
+	if (g_console_allocated)
+		printf("%s", buf);
 }
 
 void debug_logf(const char* fmt, ...) {
@@ -125,13 +161,14 @@ void debug_logf(const char* fmt, ...) {
 
 DWORD WINAPI MainThread(LPVOID)
 {
+	debug_log("[MainThread] ENTERED MainThread");
+
 	HRESULT coInitHr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 	const bool coInitOk = (coInitHr == S_OK || coInitHr == S_FALSE);
+	debug_logf("[MainThread] CoInitializeEx = 0x%08X", (unsigned)coInitHr);
 
-	timeBeginPeriod(1); // ФИКС: Убираем лок на 64 FPS, повышая точность таймера Windows до 1мс
-
-	debug_log_open();
-	debug_log("[0] DLL loaded, waiting 1500ms...");
+	timeBeginPeriod(1);
+	debug_log("[0] Waiting 1500ms for CS2 startup...");
 
 	Sleep(1500);
 
@@ -472,10 +509,15 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 	case DLL_PROCESS_ATTACH:
 		g_hModule = hModule;
 		DisableThreadLibraryCalls(hModule);
+		debug_log_open();
+		debug_log("[DllMain] DLL_PROCESS_ATTACH");
+		debug_logf("[DllMain] hModule=%p", (void*)hModule);
 		g_hMainThread = CreateThread(nullptr, 0, MainThread, nullptr, 0, &g_mainThreadId);
+		debug_logf("[DllMain] CreateThread result=%p, threadId=%u", (void*)g_hMainThread, g_mainThreadId);
 		break;
 
 	case DLL_PROCESS_DETACH:
+		debug_log("[DllMain] DLL_PROCESS_DETACH");
 		// Если DLL выгружается не через FreeLibraryAndExitThread
 		if (lpReserved == nullptr)
 		{
