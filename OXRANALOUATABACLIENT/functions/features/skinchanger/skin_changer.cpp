@@ -1,10 +1,10 @@
 #include "skin_changer.hpp"
-#include "../shared/econ_item_attribute_manager.hpp"
-#include "../shared/item_schema.hpp"
-#include "../../valve/interfaces/interfaces.hpp"
-#include "../../valve/schema/schema.hpp"
-#include "../../valve/interfaces/vtables/i_econ_item_system.hpp"
-#include "../../menu/menu.hpp"
+#include "econ_item_attribute_manager.hpp"
+#include "item_schema.hpp"
+#include "../../../valve/interfaces/interfaces.hpp"
+#include "../../../valve/schema/schema.hpp"
+#include "../../../valve/interfaces/vtables/i_econ_item_system.hpp"
+// menu.hpp not needed - skinchanger uses g_cfg from config.hpp
 
 c_base_entity* c_skin_changer::get_hud_weapon(c_base_entity* weapon, c_cs_player_pawn* local_pawn) {
 	auto arms_handle = local_pawn->m_hud_model_arms();

@@ -1,7 +1,7 @@
 #include "item_schema.hpp"
-#include "../../valve/interfaces/interfaces.hpp"
-#include "../../valve/interfaces/vtables/i_localize.hpp"
-#include "../../valve/classes/c_cs_player_pawn.hpp"
+#include "../../../valve/interfaces/interfaces.hpp"
+#include "../../../valve/interfaces/vtables/i_localize.hpp"
+#include "../../../valve/classes/c_cs_player_pawn.hpp"
 
 bool c_item_schema::is_paint_kit_for_item(const char* simple_weapon_name, c_paint_kit* paint_kit) {
 	if (!simple_weapon_name || !paint_kit || !paint_kit->m_name)

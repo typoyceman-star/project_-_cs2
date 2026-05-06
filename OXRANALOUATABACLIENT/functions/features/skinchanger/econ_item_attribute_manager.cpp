@@ -1,6 +1,6 @@
 #include "econ_item_attribute_manager.hpp"
-#include "../../valve/classes/c_cs_player_pawn.hpp"
-#include "../../valve/interfaces/vtables/i_mem_alloc.hpp"
+#include "../../../valve/classes/c_cs_player_pawn.hpp"
+#include "../../../valve/interfaces/vtables/i_mem_alloc.hpp"
 
 namespace {
 	struct econ_item_attribute_t {

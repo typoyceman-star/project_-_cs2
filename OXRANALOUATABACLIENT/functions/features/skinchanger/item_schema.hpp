@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../main.hpp"
-#include "../../valve/classes/game_enums.hpp"
-#include "../../valve/classes/c_cs_player_pawn.hpp"
-#include "../../valve/interfaces/vtables/i_econ_item_system.hpp"
+#include "../../../main.hpp"
+#include "../../../valve/classes/game_enums.hpp"
+#include "../../../valve/classes/c_cs_player_pawn.hpp"
+#include "../../../valve/interfaces/vtables/i_econ_item_system.hpp"
 #include <vector>
 #include <string>
 #include <unordered_map>

@@ -1,6 +1,6 @@
 #include "glove_changer.hpp"
-#include "../shared/econ_item_attribute_manager.hpp"
-#include "../../valve/interfaces/interfaces.hpp"
+#include "econ_item_attribute_manager.hpp"
+#include "../../../valve/interfaces/interfaces.hpp"
 
 void c_glove_changer::run(int stage) {
 	if (!g_cfg->glove_changer.m_enabled || stage != 7 || !g_ctx->m_local_pawn)

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../main.hpp"
-#include "../../valve/classes/c_cs_player_pawn.hpp"
-#include "../shared/item_schema.hpp"
+#include "../../../main.hpp"
+#include "../../../valve/classes/c_cs_player_pawn.hpp"
+#include "item_schema.hpp"
 
 class c_glove_changer {
 public:
