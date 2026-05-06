@@ -99,6 +99,12 @@
     <ClInclude Include="functions\core\memory.h">
       <Filter>functions\core</Filter>
     </ClInclude>
+    <ClInclude Include="functions\core\mem_alloc.h">
+      <Filter>functions\core</Filter>
+    </ClInclude>
+    <ClInclude Include="functions\core\vfunc.h">
+      <Filter>functions\core</Filter>
+    </ClInclude>
     <ClInclude Include="functions\core\math.h">
       <Filter>functions\core</Filter>
     </ClInclude>
@@ -189,6 +195,9 @@
       <Filter>functions\core</Filter>
     </ClCompile>
     <ClCompile Include="functions\core\memory.cpp">
+      <Filter>functions\core</Filter>
+    </ClCompile>
+    <ClCompile Include="functions\core\mem_alloc.cpp">
       <Filter>functions\core</Filter>
     </ClCompile>
     <ClCompile Include="functions\core\math.cpp">

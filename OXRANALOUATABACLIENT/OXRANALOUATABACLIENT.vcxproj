@@ -165,6 +165,8 @@
     <ClInclude Include="functions\core\globals.h" />
     <ClInclude Include="functions\core\memory.h" />
     <ClInclude Include="functions\core\math.h" />
+    <ClInclude Include="functions\core\mem_alloc.h" />
+    <ClInclude Include="functions\core\vfunc.h" />
     <ClInclude Include="functions\config\json_parser.h" />
     <ClInclude Include="functions\config\runtime_offsets.h" />
     <ClInclude Include="functions\config\paths.h" />
@@ -198,6 +200,7 @@
     <ClCompile Include="functions\core\globals.cpp" />
     <ClCompile Include="functions\core\memory.cpp" />
     <ClCompile Include="functions\core\math.cpp" />
+    <ClCompile Include="functions\core\mem_alloc.cpp" />
     <ClCompile Include="functions\config\paths.cpp" />
     <ClCompile Include="functions\config\runtime_offsets.cpp" />
     <ClCompile Include="functions\config\config_io.cpp" />
