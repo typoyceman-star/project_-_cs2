@@ -9,21 +9,29 @@
 
 // ==================== НОВЫЕ ФУНКЦИИ (INTERNAL HOOKS) ====================
 
-void __fastcall hkFrameStageNotify(void* rcx, int curStage) {
-	// Обновляем указатель на локального игрока для нового скинчейнджера
-	if (g_interfaces && g_interfaces->m_entity_system) {
-		g_ctx->m_local_pawn = g_interfaces->m_entity_system->get_local_pawn();
-		g_ctx->m_local_controller = g_interfaces->m_entity_system->get_local_controller();
-	}
+static volatile long g_hook_debug_counter = 0;
 
-	// Стадия 7 (FRAME_RENDER_END) — запись финальная, не перезаписывается сервером
-	if (curStage == 7) {
-		__try {
+void __fastcall hkFrameStageNotify(void* rcx, int curStage) {
+	long count = InterlockedIncrement(&g_hook_debug_counter);
+
+	__try {
+		// Обновляем указатель на локального игрока для нового скинчейнджера
+		if (g_interfaces && g_interfaces->m_entity_system) {
+			g_ctx->m_local_pawn = g_interfaces->m_entity_system->get_local_pawn();
+			g_ctx->m_local_controller = g_interfaces->m_entity_system->get_local_controller();
+		}
+
+		// Стадия 7 (FRAME_RENDER_END) — запись финальная, не перезаписывается сервером
+		if (curStage == 7) {
 			g_skin_changer->run(curStage);
 			g_glove_changer->run(curStage);
 		}
-		__except (EXCEPTION_EXECUTE_HANDLER) {}
 	}
+	__except (EXCEPTION_EXECUTE_HANDLER) {
+		if (count <= 3)
+			MessageBoxA(NULL, "[CRASH] Exception in hkFrameStageNotify! Skinchanger crashed.", "Debug", MB_OK | MB_TOPMOST);
+	}
+
 	oFrameStageNotify(rcx, curStage);
 }
 
@@ -48,6 +56,13 @@ void InitHooks() {
 		oFrameStageNotify = (FrameStageNotify_t)g_pSource2ClientVTable[FRAMESTAGENOTIFY_INDEX];
 		g_pSource2ClientVTable[FRAMESTAGENOTIFY_INDEX] = (void*)hkFrameStageNotify;
 		VirtualProtect(&g_pSource2ClientVTable[FRAMESTAGENOTIFY_INDEX], sizeof(void*), oldProtect, &oldProtect);
+
+		char buf[128];
+		sprintf_s(buf, "[8a] Hook installed: vtable[%d] = %p, orig = %p",
+			FRAMESTAGENOTIFY_INDEX, (void*)hkFrameStageNotify, (void*)oFrameStageNotify);
+		MessageBoxA(NULL, buf, "Debug", MB_OK | MB_TOPMOST);
+	} else {
+		MessageBoxA(NULL, "[8a] FAILED: Source2Client002 not found!", "Debug", MB_OK | MB_TOPMOST);
 	}
 }
 
