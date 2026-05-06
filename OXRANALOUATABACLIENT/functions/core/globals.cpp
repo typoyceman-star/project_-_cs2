@@ -170,22 +170,4 @@ bool g_autoFireActive = false;
 bool g_keybindsListEnabled = false;
 
 // ---- Skin Changer ----
-bool g_skinChangerEnabled = true;
-std::map<int, WeaponSkinCfg> g_skinConfig;
-std::map<std::uintptr_t, int> g_appliedSkins;
-std::uint32_t g_lastActiveWeapon = 0;
-ULONGLONG g_lastSkinUpdateTick = 0;
-LONG g_skinIdCounter = 0;
-int g_skinUpdateCounter = 0;
-int g_skinRevision = 1;
-int g_lastSkinUpdateCounterSeen = 0;
-std::map<std::uintptr_t, std::uint32_t> g_generatedIDs;
-std::map<std::uintptr_t, int> g_appliedKits;
-
-// ---- Knife Changer ----
-bool g_knifeEnabled = false;
-int  g_knifeDefIndex = 0;       // 0 = «не менять модель», просто оставить как есть
-int  g_knifePaintKit = 0;
-float g_knifeWear = 0.0001f;
-int  g_knifeSeed = 0;
-char g_knifeName[64] = {};
+// Старые глобалы удалены — теперь используется g_cfg / g_skin_changer / g_glove_changer.

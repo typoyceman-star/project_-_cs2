@@ -199,25 +199,5 @@ extern bool g_autoFireActive;
 extern bool g_keybindsListEnabled;
 
 // ---- Skin Changer ----
-extern bool g_skinChangerEnabled;
-// На каждое оружие — свой набор настроек (paintKit, wear, seed, customName).
-extern std::map<int, WeaponSkinCfg> g_skinConfig;
-extern std::map<std::uintptr_t, int> g_appliedSkins;
-extern std::uint32_t g_lastActiveWeapon;
-extern ULONGLONG g_lastSkinUpdateTick;
-extern LONG g_skinIdCounter;
-extern int g_skinUpdateCounter;
-extern int g_skinRevision;
-extern int g_lastSkinUpdateCounterSeen;
-extern std::map<std::uintptr_t, std::uint32_t> g_generatedIDs;
-extern std::map<std::uintptr_t, int> g_appliedKits;
-
-// ---- Knife Changer ----
-// При включённом g_knifeEnabled любой нож в инвентаре локального игрока
-// будет переписан в g_knifeDefIndex (модель) с заданным paintKit/wear/seed/name.
-extern bool g_knifeEnabled;
-extern int  g_knifeDefIndex;     // C_EconItemView::m_iItemDefinitionIndex
-extern int  g_knifePaintKit;
-extern float g_knifeWear;
-extern int  g_knifeSeed;
-extern char g_knifeName[64];
+// Старые глобалы удалены — теперь используется g_cfg (config.hpp)
+// и g_skin_changer / g_glove_changer / g_item_schema (main.hpp).
