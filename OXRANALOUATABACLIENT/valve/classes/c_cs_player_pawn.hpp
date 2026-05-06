@@ -534,6 +534,9 @@ public:
 			g_opcodes->scan(g_modules->m_modules.client_dll.get_name(), "4C 8B DC 53 48 81 EC ?? ?? ?? ?? 48 8B 41")
 		);
 
+		if (!fn)
+			return;
+
 		if (def_index != 0) {
 			char buf[16];
 			sprintf_s(buf, "%d", def_index);

@@ -3,8 +3,14 @@
 #include "../../../valve/interfaces/interfaces.hpp"
 
 void c_glove_changer::run(int stage) {
-	if (!g_cfg->glove_changer.m_enabled || stage != 7 || !g_ctx->m_local_pawn)
+	if (!g_cfg->glove_changer.m_enabled || stage != 7 || !g_ctx || !g_ctx->m_local_pawn)
 		return;
+
+	if (!g_item_schema->is_initialized()) {
+		g_item_schema->initialize();
+		if (!g_item_schema->is_initialized())
+			return;
+	}
 
 	auto* local_pawn = reinterpret_cast<c_cs_player_pawn*>(g_ctx->m_local_pawn);
 	if (!valid_ptr(local_pawn) || local_pawn->m_health() <= 0)
@@ -26,8 +32,7 @@ void c_glove_changer::run(int stage) {
 	if (!glove_item)
 		return;
 
-	if (!g_item_schema->is_initialized()
-		|| g_cfg->glove_changer.m_glove >= (int)g_item_schema->gloves.size())
+	if (g_cfg->glove_changer.m_glove >= (int)g_item_schema->gloves.size())
 		return;
 
 	const uint16_t selected_glove =
@@ -81,9 +86,12 @@ void c_glove_changer::run(int stage) {
 	glove_item->m_entity_quality()   = QUALITY_UNUSUAL;
 
 	if (paint_kit && paint_kit_id > 0) {
-		if (auto* desired_pk = g_interfaces->m_source2_client->get_econ_item_system()
-				->get_econ_item_schema()->get_paint_kits().find_by_key(paint_kit_id))
-			paint_kit->m_name = desired_pk->m_name;
+		if (auto* sys = g_interfaces->m_source2_client->get_econ_item_system()) {
+			if (auto* schema = sys->get_econ_item_schema()) {
+				if (auto* desired_pk = schema->get_paint_kits().find_by_key(paint_kit_id))
+					paint_kit->m_name = desired_pk->m_name;
+			}
+		}
 	}
 
 	econ_item_attribute_manager::remove(glove_item);
