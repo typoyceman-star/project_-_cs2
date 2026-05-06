@@ -67,7 +67,10 @@
 #include "functions/features/aimbot/aimbot.h"
 #include "functions/features/triggerbot/triggerbot.h"
 #include "functions/features/bhop/bhop.h"
-#include "functions/features/skinchanger/skinchanger.h"
+#include "functions/features/skinchanger/skin_changer.hpp"
+#include "functions/features/skinchanger/glove_changer.hpp"
+#include "functions/features/skinchanger/item_schema.hpp"
+#include "main.hpp"
 #include "functions/features/fov/fov.h"
 #include "functions/features/antiflash/antiflash.h"
 #include "functions/features/nosmoke/nosmoke.h"
@@ -85,7 +88,13 @@ DWORD WINAPI MainThread(LPVOID)
 	timeBeginPeriod(1); // ФИКС: Убираем лок на 64 FPS, повышая точность таймера Windows до 1мс
 
 	InitRuntimeOffsets();
-	InitSkinConfig();
+
+	// Инициализация нового скинчейнджера (valve SDK)
+	g_modules->m_modules.initialize();
+	g_interfaces->initialize();
+	g_item_schema->initialize();
+	g_skin_changer->initialize();
+
 	LoadConfig();
 	
 	InitHooks(); // Инициализация VTable хука для реал-тайм скинов

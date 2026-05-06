@@ -1,6 +1,7 @@
 #include "config_io.h"
 #include "paths.h"
 #include "../core/globals.h"
+#include "../../main.hpp"
 #include "imgui.h"
 
 void SaveConfig()
@@ -58,7 +59,7 @@ void SaveConfig()
     WritePrivateProfileStringA("Visuals", "KeybindsList", g_keybindsListEnabled ? "1" : "0", configPath.c_str());
     
     // Misc
-    WritePrivateProfileStringA("Misc", "SkinWarningShown", g_skinWarningShown ? "1" : "0", configPath.c_str());
+    // SkinWarningShown — удалён (предупреждение больше не нужно).
     WritePrivateProfileStringA("Misc", "AutoStrafe", g_autoStrafeEnabled ? "1" : "0", configPath.c_str());
     WritePrivateProfileStringA("Misc", "AntiCapture", g_antiCaptureEnabled ? "1" : "0", configPath.c_str());
     WritePrivateProfileStringA("Combat", "AimbotEnabled", g_aimbotEnabled ? "1" : "0", configPath.c_str());
@@ -78,27 +79,35 @@ void SaveConfig()
     sprintf_s(buf, sizeof(buf), "%.2f,%.2f,%.2f,%.2f", g_guiColor.x, g_guiColor.y, g_guiColor.z, g_guiColor.w);
     WritePrivateProfileStringA("Menu", "Color", buf, configPath.c_str());
 
-    // Skin Changer (per-weapon: paintKit, wear, seed, name)
-    WritePrivateProfileStringA("SkinChanger", "Enabled", g_skinChangerEnabled ? "1" : "0", configPath.c_str());
+    // Skin Changer (new system via g_cfg)
+    WritePrivateProfileStringA("SkinChanger", "Enabled", g_cfg->skin_changer.m_enabled ? "1" : "0", configPath.c_str());
+    wsprintfA(buf, "%d", g_cfg->skin_changer.m_selected_weapon); WritePrivateProfileStringA("SkinChanger", "SelectedWeapon", buf, configPath.c_str());
     {
         char keyBuf[64];
-        for (const auto& kv : g_skinConfig) {
-            const int def = kv.first;
-            const WeaponSkinCfg& cfg = kv.second;
-            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_PaintKit", def); wsprintfA(buf, "%d", cfg.paintKit); WritePrivateProfileStringA("SkinChanger", keyBuf, buf, configPath.c_str());
-            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Wear", def);     sprintf_s(buf, sizeof(buf), "%.4f", cfg.wear); WritePrivateProfileStringA("SkinChanger", keyBuf, buf, configPath.c_str());
-            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Seed", def);     wsprintfA(buf, "%d", cfg.seed); WritePrivateProfileStringA("SkinChanger", keyBuf, buf, configPath.c_str());
-            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Name", def);     WritePrivateProfileStringA("SkinChanger", keyBuf, cfg.customName, configPath.c_str());
+        for (int i = 0; i < c_config::skin_changer_t::MAX_WEAPONS; ++i) {
+            const auto& ws = g_cfg->skin_changer.weapon_skins[i];
+            if (ws.paint_kit == 0 && ws.seed == 0 && ws.wear < 0.001f && ws.custom_name[0] == '\0') continue;
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_PaintKit", i); wsprintfA(buf, "%d", ws.paint_kit); WritePrivateProfileStringA("SkinChanger", keyBuf, buf, configPath.c_str());
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Wear", i);     sprintf_s(buf, sizeof(buf), "%.4f", ws.wear); WritePrivateProfileStringA("SkinChanger", keyBuf, buf, configPath.c_str());
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Seed", i);     wsprintfA(buf, "%d", ws.seed); WritePrivateProfileStringA("SkinChanger", keyBuf, buf, configPath.c_str());
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Name", i);     WritePrivateProfileStringA("SkinChanger", keyBuf, ws.custom_name, configPath.c_str());
         }
     }
 
-    // Knife Changer
-    WritePrivateProfileStringA("KnifeChanger", "Enabled", g_knifeEnabled ? "1" : "0", configPath.c_str());
-    wsprintfA(buf, "%d", g_knifeDefIndex); WritePrivateProfileStringA("KnifeChanger", "DefIndex", buf, configPath.c_str());
-    wsprintfA(buf, "%d", g_knifePaintKit); WritePrivateProfileStringA("KnifeChanger", "PaintKit", buf, configPath.c_str());
-    sprintf_s(buf, sizeof(buf), "%.4f", g_knifeWear); WritePrivateProfileStringA("KnifeChanger", "Wear", buf, configPath.c_str());
-    wsprintfA(buf, "%d", g_knifeSeed); WritePrivateProfileStringA("KnifeChanger", "Seed", buf, configPath.c_str());
-    WritePrivateProfileStringA("KnifeChanger", "Name", g_knifeName, configPath.c_str());
+    // Knife Changer (new system via g_cfg)
+    WritePrivateProfileStringA("KnifeChanger", "Enabled", g_cfg->knife_changer.m_enabled ? "1" : "0", configPath.c_str());
+    wsprintfA(buf, "%d", g_cfg->knife_changer.m_knife); WritePrivateProfileStringA("KnifeChanger", "Knife", buf, configPath.c_str());
+    wsprintfA(buf, "%d", g_cfg->knife_changer.m_paint_kit); WritePrivateProfileStringA("KnifeChanger", "PaintKit", buf, configPath.c_str());
+    sprintf_s(buf, sizeof(buf), "%.4f", g_cfg->knife_changer.m_wear); WritePrivateProfileStringA("KnifeChanger", "Wear", buf, configPath.c_str());
+    wsprintfA(buf, "%d", g_cfg->knife_changer.m_seed); WritePrivateProfileStringA("KnifeChanger", "Seed", buf, configPath.c_str());
+    WritePrivateProfileStringA("KnifeChanger", "Name", g_cfg->knife_changer.m_custom_name, configPath.c_str());
+
+    // Glove Changer (new system via g_cfg)
+    WritePrivateProfileStringA("GloveChanger", "Enabled", g_cfg->glove_changer.m_enabled ? "1" : "0", configPath.c_str());
+    wsprintfA(buf, "%d", g_cfg->glove_changer.m_glove); WritePrivateProfileStringA("GloveChanger", "Glove", buf, configPath.c_str());
+    wsprintfA(buf, "%d", g_cfg->glove_changer.m_paint_kit); WritePrivateProfileStringA("GloveChanger", "PaintKit", buf, configPath.c_str());
+    sprintf_s(buf, sizeof(buf), "%.4f", g_cfg->glove_changer.m_wear); WritePrivateProfileStringA("GloveChanger", "Wear", buf, configPath.c_str());
+    wsprintfA(buf, "%d", g_cfg->glove_changer.m_seed); WritePrivateProfileStringA("GloveChanger", "Seed", buf, configPath.c_str());
 }
 
 void LoadConfig()
@@ -156,7 +165,7 @@ void LoadConfig()
     g_keybindsListEnabled = GetPrivateProfileIntA("Visuals", "KeybindsList", g_keybindsListEnabled ? 1 : 0, configPath.c_str()) != 0;
     
     // Misc
-    g_skinWarningShown = GetPrivateProfileIntA("Misc", "SkinWarningShown", g_skinWarningShown ? 1 : 0, configPath.c_str()) != 0;
+    // SkinWarningShown — загрузка удалена.
     g_autoStrafeEnabled = GetPrivateProfileIntA("Misc", "AutoStrafe", g_autoStrafeEnabled ? 1 : 0, configPath.c_str()) != 0;
     g_antiCaptureEnabled = GetPrivateProfileIntA("Misc", "AntiCapture", g_antiCaptureEnabled ? 1 : 0, configPath.c_str()) != 0;
     g_aimbotEnabled = GetPrivateProfileIntA("Combat", "AimbotEnabled", g_aimbotEnabled ? 1 : 0, configPath.c_str()) != 0;
@@ -182,35 +191,46 @@ void LoadConfig()
         }
     }
 
-    // Skin Changer
-    g_skinChangerEnabled = GetPrivateProfileIntA("SkinChanger", "Enabled", g_skinChangerEnabled ? 1 : 0, configPath.c_str()) != 0;
+    // Skin Changer (new system via g_cfg)
+    g_cfg->skin_changer.m_enabled = GetPrivateProfileIntA("SkinChanger", "Enabled", g_cfg->skin_changer.m_enabled ? 1 : 0, configPath.c_str()) != 0;
+    g_cfg->skin_changer.m_selected_weapon = GetPrivateProfileIntA("SkinChanger", "SelectedWeapon", g_cfg->skin_changer.m_selected_weapon, configPath.c_str());
     {
         char keyBuf[64];
-        for (auto& kv : g_skinConfig) {
-            const int def = kv.first;
-            WeaponSkinCfg& cfg = kv.second;
-            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_PaintKit", def);
-            cfg.paintKit = GetPrivateProfileIntA("SkinChanger", keyBuf, cfg.paintKit, configPath.c_str());
-            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Wear", def);
-            char wearStr[32]; sprintf_s(wearStr, sizeof(wearStr), "%.4f", cfg.wear);
+        for (int i = 0; i < c_config::skin_changer_t::MAX_WEAPONS; ++i) {
+            auto& ws = g_cfg->skin_changer.weapon_skins[i];
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_PaintKit", i);
+            ws.paint_kit = GetPrivateProfileIntA("SkinChanger", keyBuf, ws.paint_kit, configPath.c_str());
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Wear", i);
+            char wearStr[32]; sprintf_s(wearStr, sizeof(wearStr), "%.4f", ws.wear);
             GetPrivateProfileStringA("SkinChanger", keyBuf, wearStr, buf, sizeof(buf), configPath.c_str());
-            cfg.wear = (float)atof(buf);
-            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Seed", def);
-            cfg.seed = GetPrivateProfileIntA("SkinChanger", keyBuf, cfg.seed, configPath.c_str());
-            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Name", def);
-            GetPrivateProfileStringA("SkinChanger", keyBuf, "", cfg.customName, (DWORD)sizeof(cfg.customName), configPath.c_str());
+            ws.wear = (float)atof(buf);
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Seed", i);
+            ws.seed = GetPrivateProfileIntA("SkinChanger", keyBuf, ws.seed, configPath.c_str());
+            sprintf_s(keyBuf, sizeof(keyBuf), "W%d_Name", i);
+            GetPrivateProfileStringA("SkinChanger", keyBuf, "", ws.custom_name, (DWORD)sizeof(ws.custom_name), configPath.c_str());
         }
     }
 
-    // Knife Changer
-    g_knifeEnabled = GetPrivateProfileIntA("KnifeChanger", "Enabled", g_knifeEnabled ? 1 : 0, configPath.c_str()) != 0;
-    g_knifeDefIndex = GetPrivateProfileIntA("KnifeChanger", "DefIndex", g_knifeDefIndex, configPath.c_str());
-    g_knifePaintKit = GetPrivateProfileIntA("KnifeChanger", "PaintKit", g_knifePaintKit, configPath.c_str());
+    // Knife Changer (new system via g_cfg)
+    g_cfg->knife_changer.m_enabled = GetPrivateProfileIntA("KnifeChanger", "Enabled", g_cfg->knife_changer.m_enabled ? 1 : 0, configPath.c_str()) != 0;
+    g_cfg->knife_changer.m_knife = GetPrivateProfileIntA("KnifeChanger", "Knife", g_cfg->knife_changer.m_knife, configPath.c_str());
+    g_cfg->knife_changer.m_paint_kit = GetPrivateProfileIntA("KnifeChanger", "PaintKit", g_cfg->knife_changer.m_paint_kit, configPath.c_str());
     {
-        char wearStr[32]; sprintf_s(wearStr, sizeof(wearStr), "%.4f", g_knifeWear);
+        char wearStr[32]; sprintf_s(wearStr, sizeof(wearStr), "%.4f", g_cfg->knife_changer.m_wear);
         GetPrivateProfileStringA("KnifeChanger", "Wear", wearStr, buf, sizeof(buf), configPath.c_str());
-        g_knifeWear = (float)atof(buf);
+        g_cfg->knife_changer.m_wear = (float)atof(buf);
     }
-    g_knifeSeed = GetPrivateProfileIntA("KnifeChanger", "Seed", g_knifeSeed, configPath.c_str());
-    GetPrivateProfileStringA("KnifeChanger", "Name", "", g_knifeName, (DWORD)sizeof(g_knifeName), configPath.c_str());
+    g_cfg->knife_changer.m_seed = GetPrivateProfileIntA("KnifeChanger", "Seed", g_cfg->knife_changer.m_seed, configPath.c_str());
+    GetPrivateProfileStringA("KnifeChanger", "Name", "", g_cfg->knife_changer.m_custom_name, (DWORD)sizeof(g_cfg->knife_changer.m_custom_name), configPath.c_str());
+
+    // Glove Changer (new system via g_cfg)
+    g_cfg->glove_changer.m_enabled = GetPrivateProfileIntA("GloveChanger", "Enabled", g_cfg->glove_changer.m_enabled ? 1 : 0, configPath.c_str()) != 0;
+    g_cfg->glove_changer.m_glove = GetPrivateProfileIntA("GloveChanger", "Glove", g_cfg->glove_changer.m_glove, configPath.c_str());
+    g_cfg->glove_changer.m_paint_kit = GetPrivateProfileIntA("GloveChanger", "PaintKit", g_cfg->glove_changer.m_paint_kit, configPath.c_str());
+    {
+        char wearStr[32]; sprintf_s(wearStr, sizeof(wearStr), "%.4f", g_cfg->glove_changer.m_wear);
+        GetPrivateProfileStringA("GloveChanger", "Wear", wearStr, buf, sizeof(buf), configPath.c_str());
+        g_cfg->glove_changer.m_wear = (float)atof(buf);
+    }
+    g_cfg->glove_changer.m_seed = GetPrivateProfileIntA("GloveChanger", "Seed", g_cfg->glove_changer.m_seed, configPath.c_str());
 }
