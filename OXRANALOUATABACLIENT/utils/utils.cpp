@@ -24,7 +24,7 @@ std::vector<int> c_opcodes::ida_to_bytes(const char* pattern)
 }
 
 uint8_t* c_opcodes::scan(const char* module_name, const char* pattern) {
-    void* module_handle = WINCALL(GetModuleHandle)(module_name);
+    void* module_handle = WINCALL(GetModuleHandleA)(module_name);
     if (module_handle == nullptr)
         return nullptr;
 

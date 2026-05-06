@@ -9,7 +9,7 @@
 template <typename type_t = void*>
 inline type_t* get_interface(c_dll* dll, const char* name)
 {
-	const HINSTANCE module_handle = GetModuleHandle(dll->get_name());
+	const HINSTANCE module_handle = GetModuleHandleA(dll->get_name());
 	if (!module_handle)
 		return nullptr;
 
