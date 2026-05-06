@@ -91,6 +91,38 @@ static BOOL wait_for_module(const char* module_name, DWORD timeout_ms) {
 	return FALSE;
 }
 
+static HANDLE g_debug_log = INVALID_HANDLE_VALUE;
+static char g_debug_log_path[MAX_PATH] = {};
+
+static void debug_log_open() {
+	char exe_path[MAX_PATH] = {};
+	GetModuleFileNameA(nullptr, exe_path, MAX_PATH);
+	char* last_slash = strrchr(exe_path, '\\');
+	if (last_slash) *(last_slash + 1) = '\0';
+	sprintf_s(g_debug_log_path, "%sdebug_log.txt", exe_path);
+	g_debug_log = CreateFileA(g_debug_log_path, GENERIC_WRITE, FILE_SHARE_READ,
+		nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+}
+
+void debug_log(const char* msg) {
+	if (g_debug_log == INVALID_HANDLE_VALUE) return;
+	DWORD written = 0;
+	char buf[512];
+	DWORD tick = GetTickCount();
+	sprintf_s(buf, "[%ums] %s\r\n", tick, msg);
+	WriteFile(g_debug_log, buf, (DWORD)strlen(buf), &written, nullptr);
+	FlushFileBuffers(g_debug_log);
+}
+
+void debug_logf(const char* fmt, ...) {
+	char buf[512];
+	va_list args;
+	va_start(args, fmt);
+	vsprintf_s(buf, fmt, args);
+	va_end(args);
+	debug_log(buf);
+}
+
 DWORD WINAPI MainThread(LPVOID)
 {
 	HRESULT coInitHr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
@@ -98,45 +130,48 @@ DWORD WINAPI MainThread(LPVOID)
 
 	timeBeginPeriod(1); // ФИКС: Убираем лок на 64 FPS, повышая точность таймера Windows до 1мс
 
+	debug_log_open();
+	debug_log("[0] DLL loaded, waiting 1500ms...");
+
 	Sleep(1500);
 
-	if (!wait_for_module("client.dll", 15000) ||
-		!wait_for_module("engine2.dll", 15000) ||
-		!wait_for_module("schemasystem.dll", 15000) ||
-		!wait_for_module("inputsystem.dll", 15000) ||
-		!wait_for_module("filesystem_stdio.dll", 15000)) {
-		FreeLibraryAndExitThread(g_hModule, 0);
-		return 0;
-	}
+	debug_log("[0a] Waiting for modules...");
+	if (!wait_for_module("client.dll", 15000)) { debug_log("FAIL: client.dll timeout"); FreeLibraryAndExitThread(g_hModule, 0); return 0; }
+	debug_log("  client.dll OK");
+	if (!wait_for_module("engine2.dll", 15000)) { debug_log("FAIL: engine2.dll timeout"); FreeLibraryAndExitThread(g_hModule, 0); return 0; }
+	debug_log("  engine2.dll OK");
+	if (!wait_for_module("schemasystem.dll", 15000)) { debug_log("FAIL: schemasystem.dll timeout"); FreeLibraryAndExitThread(g_hModule, 0); return 0; }
+	debug_log("  schemasystem.dll OK");
+	if (!wait_for_module("inputsystem.dll", 15000)) { debug_log("FAIL: inputsystem.dll timeout"); FreeLibraryAndExitThread(g_hModule, 0); return 0; }
+	debug_log("  inputsystem.dll OK");
+	if (!wait_for_module("filesystem_stdio.dll", 15000)) { debug_log("FAIL: filesystem_stdio.dll timeout"); FreeLibraryAndExitThread(g_hModule, 0); return 0; }
+	debug_log("  filesystem_stdio.dll OK");
 
 	Sleep(500);
 
-	MessageBoxA(NULL, "[1] Modules loaded, starting init...", "Debug", MB_OK | MB_TOPMOST);
+	debug_log("[1] All modules loaded, starting init...");
 
-	InitRuntimeOffsets();
-
-	MessageBoxA(NULL, "[2] RuntimeOffsets done", "Debug", MB_OK | MB_TOPMOST);
+	__try { InitRuntimeOffsets(); } __except(EXCEPTION_EXECUTE_HANDLER) { debug_log("CRASH in InitRuntimeOffsets!"); }
+	debug_log("[2] RuntimeOffsets done");
 
 	// Инициализация нового скинчейнджера (valve SDK)
-	g_modules->m_modules.initialize();
-	MessageBoxA(NULL, "[3] g_modules OK", "Debug", MB_OK | MB_TOPMOST);
+	__try { g_modules->m_modules.initialize(); } __except(EXCEPTION_EXECUTE_HANDLER) { debug_log("CRASH in g_modules->initialize!"); }
+	debug_log("[3] g_modules OK");
 
-	g_interfaces->initialize();
-	MessageBoxA(NULL, "[4] g_interfaces OK", "Debug", MB_OK | MB_TOPMOST);
+	__try { g_interfaces->initialize(); } __except(EXCEPTION_EXECUTE_HANDLER) { debug_log("CRASH in g_interfaces->initialize!"); }
+	debug_log("[4] g_interfaces OK");
 
-	g_item_schema->initialize();
-	MessageBoxA(NULL, g_item_schema->is_initialized()
-		? "[5] item_schema OK (initialized)"
-		: "[5] item_schema SKIPPED (not ready yet, will retry later)", "Debug", MB_OK | MB_TOPMOST);
+	__try { g_item_schema->initialize(); } __except(EXCEPTION_EXECUTE_HANDLER) { debug_log("CRASH in g_item_schema->initialize!"); }
+	debug_logf("[5] item_schema: %s", g_item_schema->is_initialized() ? "INITIALIZED" : "SKIPPED (will retry later)");
 
-	g_skin_changer->initialize();
-	MessageBoxA(NULL, "[6] skin_changer OK", "Debug", MB_OK | MB_TOPMOST);
+	__try { g_skin_changer->initialize(); } __except(EXCEPTION_EXECUTE_HANDLER) { debug_log("CRASH in g_skin_changer->initialize!"); }
+	debug_log("[6] skin_changer OK");
 
 	LoadConfig();
-	MessageBoxA(NULL, "[7] Config loaded", "Debug", MB_OK | MB_TOPMOST);
+	debug_log("[7] Config loaded");
 	
-	InitHooks(); // Инициализация VTable хука для реал-тайм скинов
-	MessageBoxA(NULL, "[8] Hooks installed. Init complete!", "Debug", MB_OK | MB_TOPMOST);
+	__try { InitHooks(); } __except(EXCEPTION_EXECUTE_HANDLER) { debug_log("CRASH in InitHooks!"); }
+	debug_log("[8] Hooks installed. Init complete!");
 
 	WNDCLASSEXW wc{};
 	wc.cbSize = sizeof(WNDCLASSEXW);
