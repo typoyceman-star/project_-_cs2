@@ -6,6 +6,8 @@
 bool c_item_schema::is_paint_kit_for_item(const char* simple_weapon_name, c_paint_kit* paint_kit) {
 	if (!simple_weapon_name || !paint_kit || !paint_kit->m_name)
 		return false;
+	if (!g_interfaces || !g_interfaces->m_file_system)
+		return false;
 
 	std::string path = "panorama/images/econ/default_generated/" +
 		std::string(simple_weapon_name) + "_" +
@@ -58,6 +60,9 @@ void c_item_schema::initialize() {
 	if (m_initialized)
 		return;
 
+	if (!g_interfaces || !g_interfaces->m_source2_client)
+		return;
+
 	auto* item_system = g_interfaces->m_source2_client->get_econ_item_system();
 	if (!item_system)
 		return;
@@ -67,6 +72,9 @@ void c_item_schema::initialize() {
 		return;
 
 	auto& items = item_schema->get_sorted_item_definition_map();
+	if (items.count() <= 0)
+		return;
+
 	auto& paint_kit_map = item_schema->get_paint_kits();
 
 	const int items_n = items.count();

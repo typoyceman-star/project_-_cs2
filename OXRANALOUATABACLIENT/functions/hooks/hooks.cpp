@@ -18,8 +18,11 @@ void __fastcall hkFrameStageNotify(void* rcx, int curStage) {
 
 	// Стадия 7 (FRAME_RENDER_END) — запись финальная, не перезаписывается сервером
 	if (curStage == 7) {
-		g_skin_changer->run(curStage);
-		g_glove_changer->run(curStage);
+		__try {
+			g_skin_changer->run(curStage);
+			g_glove_changer->run(curStage);
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) {}
 	}
 	oFrameStageNotify(rcx, curStage);
 }

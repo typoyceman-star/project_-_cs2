@@ -80,12 +80,36 @@
 #include "functions/features/snaplines/snaplines.h"
 #include "functions/features/spectators/spectators.h"
 
+static BOOL wait_for_module(const char* module_name, DWORD timeout_ms) {
+	DWORD elapsed = 0;
+	while (elapsed < timeout_ms) {
+		if (GetModuleHandleA(module_name) != nullptr)
+			return TRUE;
+		Sleep(50);
+		elapsed += 50;
+	}
+	return FALSE;
+}
+
 DWORD WINAPI MainThread(LPVOID)
 {
 	HRESULT coInitHr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 	const bool coInitOk = (coInitHr == S_OK || coInitHr == S_FALSE);
 
 	timeBeginPeriod(1); // ФИКС: Убираем лок на 64 FPS, повышая точность таймера Windows до 1мс
+
+	Sleep(1500);
+
+	if (!wait_for_module("client.dll", 15000) ||
+		!wait_for_module("engine2.dll", 15000) ||
+		!wait_for_module("schemasystem.dll", 15000) ||
+		!wait_for_module("inputsystem.dll", 15000) ||
+		!wait_for_module("filesystem_stdio.dll", 15000)) {
+		FreeLibraryAndExitThread(g_hModule, 0);
+		return 0;
+	}
+
+	Sleep(500);
 
 	InitRuntimeOffsets();
 

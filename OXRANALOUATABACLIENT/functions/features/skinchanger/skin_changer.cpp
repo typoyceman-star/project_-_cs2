@@ -49,9 +49,12 @@ void c_skin_changer::apply_skin(c_econ_entity* weapon, c_econ_item_view* item, i
 		strcpy_s(item->m_custom_name(), 161, custom_name);
 
 	bool uses_old_model = false;
-	c_paint_kit* pk = nullptr;
-	if ((pk = g_interfaces->m_source2_client->get_econ_item_system()->get_econ_item_schema()->get_paint_kits().find_by_key(paint_kit_id)))
-		uses_old_model = pk->uses_old_model();
+	if (auto* sys = g_interfaces->m_source2_client->get_econ_item_system()) {
+		if (auto* schema = sys->get_econ_item_schema()) {
+			if (auto* pk = schema->get_paint_kits().find_by_key(paint_kit_id))
+				uses_old_model = pk->uses_old_model();
+		}
+	}
 
 	uint64_t mesh_mask = uses_old_model ? 2 : 1;
 
@@ -131,9 +134,14 @@ void c_skin_changer::process_knife(c_econ_entity* weapon, c_econ_item_view* item
 		econ_item_attribute_manager::create(item, paint_kit_id, g_cfg->knife_changer.m_wear, g_cfg->knife_changer.m_seed);
 
 	bool uses_old_model = false;
-	if (paint_kit_id > 0)
-		if (auto* pk = g_interfaces->m_source2_client->get_econ_item_system()->get_econ_item_schema()->get_paint_kits().find_by_key(paint_kit_id))
-			uses_old_model = pk->uses_old_model();
+	if (paint_kit_id > 0) {
+		if (auto* sys = g_interfaces->m_source2_client->get_econ_item_system()) {
+			if (auto* schema = sys->get_econ_item_schema()) {
+				if (auto* pk = schema->get_paint_kits().find_by_key(paint_kit_id))
+					uses_old_model = pk->uses_old_model();
+			}
+		}
+	}
 
 	uint64_t mesh_mask = uses_old_model ? 1 : 2;
 	if (auto* scene_node = weapon->m_scene_node())
@@ -164,6 +172,12 @@ void c_skin_changer::run(int stage) {
 	if (stage != 7)
 		return;
 
+	if (!m_initialized) {
+		initialize();
+		if (!m_initialized)
+			return;
+	}
+
 	const bool skin_enabled  = g_cfg->skin_changer.m_enabled;
 	const bool knife_enabled = g_cfg->knife_changer.m_enabled;
 	if (!skin_enabled && !knife_enabled) {
@@ -171,7 +185,7 @@ void c_skin_changer::run(int stage) {
 		return;
 	}
 
-	if (!g_ctx->m_local_pawn)
+	if (!g_ctx || !g_ctx->m_local_pawn)
 		return;
 
 	auto* local_pawn = reinterpret_cast<c_cs_player_pawn*>(g_ctx->m_local_pawn);
