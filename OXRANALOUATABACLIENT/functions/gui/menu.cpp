@@ -760,9 +760,15 @@ void DrawMenuImGui()
 		ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Config is saved automatically.");
 		
 		ImGui::Spacing();
-		if (ImGui::Button("Unload Cheat")) {
-			// Здесь можно добавить логику выгрузки
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.15f, 0.15f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.1f, 0.1f, 1.0f));
+		if (ImGui::Button("Unload Cheat", ImVec2(140, 30))) {
+			SaveConfig();
+			g_running = false;
 		}
+		ImGui::PopStyleColor(3);
+		ImGui::TextDisabled("Сохраняет конфиг и выгружает DLL (END)");
 	}
 
 	ImGui::Spacing();
